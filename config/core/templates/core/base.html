@@ -258,7 +258,7 @@
     {% if user.is_superuser or user.username == 'CEO' or user.profile.role == 'CEO' %}
     <a class="nav-link {% if 'officers' in request.path %}active{% endif %}" href="/officers/register/">👥 Officer
       Management</a>
-    <a class="nav-link" href="{% url 'register_officer' %}" style="font-size:12px;color:#93c5fd">+ Register Officer</a>
+    <!-- <a class="nav-link" href="{% url 'register_officer' %}" style="font-size:12px;color:#93c5fd">+ Register Officer</a> -->
     {% endif %}
 
     <div class="nav-label">BRANCHES</div>

@@ -1,13 +1,13 @@
 {% extends 'core/base.html' %}
 {% block content %}
 <div class="container mt-4">
-<h3>Branch Manager - Loan Entry ({{profile.branch}})</h3>
-<div class="card p-4 shadow-sm mt-3">
-<form method="POST" enctype="multipart/form-data">
-{% csrf_token %}
-{{ form.as_p }}
-<button class="btn btn-success w-100">Submit to CEO for Approval</button>
-</form>
-</div>
+    <h3>Branch Manager - Loan Entry ({{profile.branch}})</h3>
+    <div class="card p-4 shadow-sm mt-3">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn btn-success w-100">Submit to CEO for Approval</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

@@ -1,18 +1,178 @@
 {% extends 'core/base.html' %}
 {% block content %}
-<h3 class="brand-font">Clients</h3>
-<table class="table table-striped mt-3 card-classic p-3">
-<tr><th>Name</th><th>Loan</th><th>Branch</th><th>Decision</th><th>Date</th></tr>
-{% for c in clients %}
-<tr>
-  <td>{{ c.full_name }}</td>
-  <td>₦{{ c.loan_amount }}</td>
-  <td>{{ c.branch }}</td>
-  <td><span class="badge bg-{% if c.decision == 'APPROVED' %}success{% else %}danger{% endif %}">{{ c.decision }}</span></td>
-  <td>{{ c.created_at|date:"d M Y" }}</td>
-</tr>
-{% empty %}
-<tr><td colspan="5" class="text-center text-muted">No clients yet</td></tr>
-{% endfor %}
-</table>
+<style>
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px
+  }
+
+  .btn-new {
+    background: #fbbf24;
+    color: #000;
+    padding: 10px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 13px
+  }
+
+  .search {
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    width: 260px
+  }
+
+  .table-wrap {
+    overflow-x: auto
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px
+  }
+
+  th {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: #64748b;
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap
+  }
+
+  td {
+    padding: 14px 12px;
+    font-size: 13px;
+    border-bottom: 1px solid #f1f5f9
+  }
+
+  .av {
+    width: 32px;
+    height: 32px;
+    background: #0f172a;
+    color: #fbbf24;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin-right: 8px;
+    font-size: 12px
+  }
+
+  .badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700
+  }
+
+  .badge-lagos {
+    background: #dbeafe;
+    color: #1e40af
+  }
+
+  .badge-abuja {
+    background: #fef3c7;
+    color: #92400e
+  }
+
+  .badge-enugu {
+    background: #d1fae5;
+    color: #065f46
+  }
+
+  .badge-kano {
+    background: #fee2e2;
+    color: #991b1b
+  }
+
+  .btn-sm {
+    padding: 6px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 4px
+  }
+
+  .btn-view {
+    background: #0f172a;
+    color: #fff
+  }
+
+  .btn-loan {
+    background: #fbbf24;
+    color: #000
+  }
+</style>
+
+<div class="header-row">
+  <div>
+    <h3 style="font-size:20px">Clients</h3>
+    <p style="font-size:12px;color:#64748b">{{ clients.count }} total clients • All branches</p>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <input class="search" id="clientSearch" placeholder="Search name, phone, BVN..." onkeyup="filterClients()">
+    <a href="/clients/new/" class="btn-new">+ New Client</a>
+  </div>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden">
+  <div class="table-wrap">
+    <table id="clientsTable">
+      <tr>
+        <th>CLIENT</th>
+        <th>CONTACT</th>
+        <th>BVN</th>
+        <th>BRANCH</th>
+        <th>JOINED</th>
+        <th>ACTION</th>
+      </tr>
+      {% for c in clients %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center">
+            <span class="av">{{ c.full_name|slice:":1"|upper }}</span>
+            <span style="font-weight:600">{{ c.full_name }}</span>
+          </div>
+        </td>
+        <td>
+          <div style="font-weight:600">{{ c.phone }}</div>
+          <div style="font-size:11px;color:#64748b">{{ c.email|default:"No email" }}</div>
+        </td>
+        <td style="font-family:monospace">{{ c.bvn|default:"—" }}</td>
+        <td><span class="badge badge-{{ c.branch|lower }}">{{ c.branch }}</span></td>
+        <td style="font-size:12px;color:#64748b">{{ c.created_at|date:"d M Y" }}</td>
+        <td>
+          <a href="/clients/{{ c.id }}/" class="btn-sm btn-view">View</a>
+          <a href="/apply/?client={{ c.id }}" class="btn-sm btn-loan">+ Loan</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:40px;color:#94a3b8">No clients yet. <a href="/clients/new/"
+            style="color:#f59e0b">Create first client →</a></td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+<script>
+  function filterClients() {
+    let input = document.getElementById('clientSearch').value.toLowerCase();
+    let rows = document.querySelectorAll('#clientsTable tr:not(:first-child)');
+    rows.forEach(row => {
+      row.style.display = row.innerText.toLowerCase().includes(input) ? '' : 'none';
+    });
+  }
+</script>
 {% endblock %}
