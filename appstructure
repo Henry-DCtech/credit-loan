@@ -1,0 +1,13 @@
+config/
+  settings.py  # Postgres + Whitenoise
+core/
+  models.py    # Customer, LoanApplication, PredictionResult
+  forms.py
+  services.py  # Decision Support Engine
+  views.py     # apply_loan, dashboard, result
+  templates/core/
+    base.html, apply.html, result.html, dashboard.html
+ml_engine/
+  train.py     # train with LendingClub dataset
+  predictor.py # load .pkl
+  credit_model.pkl (generated)

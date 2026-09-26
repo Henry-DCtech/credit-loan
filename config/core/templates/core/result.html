@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card p-4 text-center shadow-sm">
+      <canvas id="gauge" height="200"></canvas>
+      <h2 class="mt-3">Score: {{result.risk_score|floatformat:0}} / 100</h2>
+      <p>Default Probability: {{result.default_probability|floatformat:2}}</p>
+      <h3><span class="badge {% if result.decision == 'Approve' %}bg-success{% elif result.decision == 'Review' %}bg-warning text-dark{% else %}bg-danger{% endif %} p-3">{{result.decision}}</span></h3>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-4 shadow-sm">
+      <h5>👤 {{customer.full_name}} | Age {{customer.age}}</h5>
+      <p>Income: ₦{{customer.income}} | Employment: {{customer.employment_years}}y | Credit: {{customer.credit_history}} | DTI: {{customer.debt_to_income}}</p>
+      <hr>
+      <h5>💰 Loan: ₦{{app.loan_amount}} for {{app.loan_term}} months</h5>
+      <p>Purpose: {{app.purpose}} | Rate: {{app.interest_rate}}%</p>
+      <h6 class="mt-3">🧠 Decision Reasons:</h6>
+      <ul>{% for r in result.reasons %}<li>{{r}}</li>{% endfor %}</ul>
+      <a href="/" class="btn btn-dark mt-3 w-100">Back to Dashboard</a>
+    </div>
+  </div>
+</div>
+<script>
+const score = {{result.risk_score|floatformat:0}};
+new Chart(document.getElementById('gauge'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Risk Score', 'Remaining'],
+    datasets: [{ data: [score, 100-score], backgroundColor: [score>70?'#198754':score>50?'#ffc107':'#dc3545', '#e9ecef'] }]
+  },
+  options: { cutout: '70%', plugins: { legend: { display: false } } }
+});
+</script>
+{% endblock %}

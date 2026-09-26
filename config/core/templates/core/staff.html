@@ -1,0 +1,15 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h3 class="brand-font">Staff Management</h3>
+<table class="table table-striped mt-3 card-classic p-3">
+<tr><th>Username</th><th>Role</th><th>Branch</th><th>Action</th></tr>
+{% for p in profiles %}
+<tr>
+  <td>{{ p.user.username }}</td>
+  <td>{{ p.role }}</td>
+  <td>{{ p.branch }}</td>
+  <td><a href="{% url 'edit_staff_role' p.id %}" class="btn btn-sm btn-primary">Edit</a></td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

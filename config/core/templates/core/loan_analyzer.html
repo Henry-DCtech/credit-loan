@@ -1,0 +1,139 @@
+{% extends 'core/base.html' %}
+{% block title %}Loan Analyzer{% endblock %}
+
+{% block content %}
+<div style="max-width:900px;margin:auto">
+    <h3 class="fw-bold mb-1"><i class="bi bi-calculator text-primary"></i> Loan Analyzer</h3>
+    <p class="text-muted mb-4">Check affordability and AI risk before applying</p>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0" style="border-radius:16px">
+                <div class="card-header bg-white fw-bold" style="border-radius:16px 16px 0 0">
+                    Input Details
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Monthly Income (₦)</label>
+                            <input type="number" name="income" class="form-control" placeholder="e.g 150000" required value="{{ request.POST.income }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Loan Amount (₦)</label>
+                            <input type="number" name="loan" class="form-control" placeholder="e.g 500000" required value="{{ request.POST.loan }}">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Credit Score</label>
+                                <input type="number" name="credit" class="form-control" placeholder="300-850" value="{{ request.POST.credit|default:'700' }}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Tenure (months)</label>
+                                <input type="number" name="tenure" class="form-control" value="{{ request.POST.tenure|default:'12' }}">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Employment (yrs)</label>
+                                <input type="number" name="employment" class="form-control" value="{{ request.POST.employment|default:'3' }}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Existing Loans</label>
+                                <input type="number" name="existing" class="form-control" value="{{ request.POST.existing|default:'0' }}">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary w-100 py-2 fw-bold" style="border-radius:10px">
+                            <i class="bi bi-lightning-charge"></i> Analyze Loan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            {% if result %}
+                {% if result.error %}
+                    <div class="alert alert-danger">{{ result.error }}</div>
+                {% else %}
+                <div class="card shadow-sm border-0 mb-3" style="border-radius:16px">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Analysis Result</h5>
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded-3 text-center">
+                                    <small class="text-muted">Monthly Payment</small>
+                                    <h4 class="fw-bold mb-0">₦{{ result.monthly_payment }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded-3 text-center">
+                                    <small class="text-muted">DTI Ratio</small>
+                                    <h4 class="fw-bold mb-0 {% if result.dti > 40 %}text-danger{% else %}text-success{% endif %}">{{ result.dti }}%</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm">
+                            <tr><td>Total DTI (with existing)</td><td class="text-end fw-bold">{{ result.total_dti }}%</td></tr>
+                            <tr><td>Credit Status</td><td class="text-end"><span class="badge bg-dark">{{ result.credit_status }}</span></td></tr>
+                            <tr><td>AI Risk Score</td><td class="text-end fw-bold">{{ result.risk_score }}%</td></tr>
+                            <tr><td>AI Decision</td><td class="text-end">
+                                {% if result.decision == 'APPROVED' %}<span class="badge bg-success">APPROVED</span>
+                                {% elif result.decision == 'REJECTED' %}<span class="badge bg-danger">REJECTED</span>
+                                {% else %}<span class="badge bg-warning text-dark">MANUAL REVIEW</span>
+                                {% endif %}
+                            </td></tr>
+                        </table>
+
+                        <div class="alert {% if result.affordable %}alert-success{% else %}alert-danger{% endif %} mt-3">
+                            {% if result.affordable %}
+                                ✅ <strong>Affordable</strong> - DTI is below 40%, loan looks manageable.
+                            {% else %}
+                                ❌ <strong>Not Affordable</strong> - DTI {{ result.dti }}% is too high. Reduce loan amount or increase tenure.
+                            {% endif %}
+                            <br><small>{{ result.reason }}</small>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-3">
+                            <a href="/apply/" class="btn btn-primary flex-fill">Apply Now with these values</a>
+                            <a href="/analyzer/" class="btn btn-outline-dark flex-fill">Reset</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual bar -->
+                <div class="card shadow-sm border-0" style="border-radius:16px">
+                    <div class="card-body">
+                        <h6 class="fw-bold">Risk Meter</h6>
+                        {% if result.risk_score < 30 %}
+                            {% with color="bg-success" %}
+                            <div class="progress-bar {{ color }}" style="width: {{ result.risk_score }}%;">{{ result.risk_score }} percent</div>
+                            {% endwith %}
+                        {% elif result.risk_score < 60 %}
+                            <div class="progress-bar bg-warning" style="width: {{ result.risk_score }}%;">{{ result.risk_score }} percent</div>
+                        {% else %}
+                            <div class="progress-bar bg-danger" style="width: {{ result.risk_score }}%;">{{ result.risk_score }} percent</div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-success">Low Risk</small>
+                            <small class="text-warning">Medium</small>
+                            <small class="text-danger">High Risk</small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="card shadow-sm border-0 h-100 d-flex align-items-center justify-content-center p-5 text-center" style="border-radius:16px;min-height:400px">
+                    <div>
+                        <i class="bi bi-graph-up-arrow" style="font-size:64px;color:#dee2e6"></i>
+                        <h5 class="text-muted mt-3">Enter values to analyze</h5>
+                        <p class="text-muted small">We will calculate monthly payment, DTI ratio and AI default probability instantly.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

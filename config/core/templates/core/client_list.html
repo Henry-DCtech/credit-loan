@@ -1,0 +1,23 @@
+{% extends "core/base.html" %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+  <div><h2>Clients ({{ clients|length }})</h2><p style="color:#64748b;font-size:12px">All KYC-verified clients • Branch filtered</p></div>
+  <a href="/clients/new/" style="background:#0f172a;color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700">+ New Client</a>
+</div>
+
+<div class="card">
+  <table>
+    <tr><th>Client</th><th>Phone</th><th>Branch</th><th>BVN</th><th>Loans</th><th>Action</th></tr>
+    {% for c in clients %}
+    <tr>
+      <td style="font-weight:600">{{ c.full_name }}</td>
+      <td>{{ c.phone }}</td>
+      <td><span style="border:1px solid #e2e8f0;padding:3px 8px;border-radius:20px;font-size:11px">{{ c.branch }}</span></td>
+      <td style="font-size:12px">{{ c.bvn|default:"-" }}</td>
+      <td>{{ c.loans.count }}</td>
+      <td><a href="/clients/{{ c.id }}/" style="background:#f1f5f9;padding:6px 12px;border-radius:8px;text-decoration:none;font-size:12px">View</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

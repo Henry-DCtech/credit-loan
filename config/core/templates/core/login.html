@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CreditRisk Executive - Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{min-height:100vh;display:grid;grid-template-columns:1.1fr 0.9fr;background:#0f172a}
+.left{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#fff;padding:50px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.left::after{content:'';position:absolute;right:-80px;top:-80px;width:300px;height:300px;background:radial-gradient(circle,#fbbf24 0%,transparent 70%);opacity:0.15}
+.logo{display:flex;gap:12px;align-items:center;font-weight:800;letter-spacing:1px}
+.logo-icon{width:44px;height:44px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#000;font-size:20px;font-weight:800}
+.hero h1{font-size:42px;line-height:1.1;margin:30px 0 15px}
+.hero h1 span{color:#fbbf24}
+.hero p{color:#94a3b8;font-size:15px;line-height:1.6;max-width:420px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:40px}
+.stat{border:1px solid #334155;border-radius:12px;padding:15px}
+.stat b{font-size:22px;color:#fff;display:block}
+.stat small{color:#64748b;font-size:11px;letter-spacing:1px}
+.right{background:#f8fafc;display:flex;align-items:center;justify-content:center;padding:40px}
+.card{background:#fff;width:100%;max-width:400px;border-radius:20px;padding:35px;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.card h2{font-size:22px;margin-bottom:5px}
+.card .sub{color:#64748b;font-size:13px;margin-bottom:25px}
+.label{font-size:11px;font-weight:700;letter-spacing:1px;color:#475569;display:block;margin:15px 0 6px}
+.input{width:100%;padding:13px 15px;border:1px solid #e2e8f0;border-radius:12px;font-size:14px;background:#f8fafc;outline:none;transition:0.2s}
+.input:focus{border-color:#0f172a;background:#fff}
+.btn-login{width:100%;background:#0f172a;color:#fff;border:none;padding:14px;border-radius:12px;font-weight:700;margin-top:22px;cursor:pointer;letter-spacing:0.5px}
+.btn-login:hover{background:#1e293b}
+.divider{text-align:center;margin:20px 0;color:#94a3b8;font-size:12px;position:relative}
+.divider::before,.divider::after{content:'';position:absolute;top:50%;width:35%;height:1px;background:#e2e8f0}
+.divider::before{left:0}.divider::after{right:0}
+.tag-ceo{display:inline-block;background:#fef3c7;color:#92400e;border:1px solid #fbbf24;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:15px}
+a{color:#0f172a;text-decoration:none;font-weight:600;font-size:13px}
+.error{background:#fee2e2;color:#991b1b;padding:10px 12px;border-radius:10px;font-size:13px;margin-bottom:15px}
+</style>
+</head>
+<body>
+
+<div class="left">
+  <div class="logo"><div class="logo-icon">C</div>CREDITRISK<br><small style="font-size:9px;color:#fbbf24;letter-spacing:2px">EXECUTIVE • 2026</small></div>
+  
+  <div class="hero">
+    <h1>Executive<br>Risk<br><span>Console.</span></h1>
+    <p>CEO has sole approval authority across all branches. ML-powered risk scoring, instant decisions, audit-ready.</p>
+    <div class="stats">
+      <div class="stat"><b>₦2.4B+</b><small>DISBURSED</small></div>
+      <div class="stat"><b>98.2%</b><small>ACCURACY</small></div>
+      <div class="stat"><b>4</b><small>BRANCHES</small></div>
+    </div>
+  </div>
+
+  <div style="color:#475569;font-size:11px;letter-spacing:1px">© 2026 CREDITRISK EXECUTIVE • LAGOS HQ</div>
+</div>
+
+<div class="right">
+  <div class="card">
+    <span class="tag-ceo">CEO SECURE ACCESS</span>
+    <h2>Welcome back</h2>
+    <p class="sub">Sign in to Executive Risk Console</p>
+
+    {% if messages %}
+      {% for message in messages %}<div class="error">{{ message }}</div>{% endfor %}
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+      <label class="label">USERNAME / EMAIL</label>
+      <input class="input" type="text" name="username" placeholder="ceo@creditrisk.ng" required>
+      
+      <label class="label">PASSWORD</label>
+      <input class="input" type="password" name="password" placeholder="••••••••" required>
+
+      <button class="btn-login">SIGN IN →</button>
+    </form>
+
+    <div class="divider">or</div>
+    
+    <div style="text-align:center;font-size:13px;color:#64748b">
+      No account? <a href="/register/">Create executive account</a>
+    </div>
+
+    <div style="margin-top:25px;padding:12px;background:#f1f5f9;border-radius:10px;font-size:11px;color:#64748b;line-height:1.5">
+      🔒 Demo: <b>CEO</b> / ceo123 • <b>staff</b> / staff123<br>
+      CEO can APPROVE/REJECT instantly. Staff can only submit.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

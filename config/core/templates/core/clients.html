@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h3 class="brand-font">Clients</h3>
+<table class="table table-striped mt-3 card-classic p-3">
+<tr><th>Name</th><th>Loan</th><th>Branch</th><th>Decision</th><th>Date</th></tr>
+{% for c in clients %}
+<tr>
+  <td>{{ c.full_name }}</td>
+  <td>₦{{ c.loan_amount }}</td>
+  <td>{{ c.branch }}</td>
+  <td><span class="badge bg-{% if c.decision == 'APPROVED' %}success{% else %}danger{% endif %}">{{ c.decision }}</span></td>
+  <td>{{ c.created_at|date:"d M Y" }}</td>
+</tr>
+{% empty %}
+<tr><td colspan="5" class="text-center text-muted">No clients yet</td></tr>
+{% endfor %}
+</table>
+{% endblock %}

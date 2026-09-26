@@ -1,0 +1,14 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-4" style="max-width:600px">
+<h3>Credit Officer - New Client Registration</h3>
+<form method="POST" class="card p-4 shadow-sm mt-3">
+{% csrf_token %}
+<input name="full_name" class="form-control mb-3" placeholder="Full Name" required>
+<input name="phone" class="form-control mb-3" placeholder="Phone" required>
+<input name="bvn" class="form-control mb-3" placeholder="BVN" required>
+<textarea name="address" class="form-control mb-3" placeholder="Address" required></textarea>
+<button class="btn btn-primary w-100">Register Client</button>
+</form>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Executive Account - CreditRisk</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{min-height:100vh;display:grid;grid-template-columns:0.9fr 1.1fr;background:#f8fafc}
+.left{background:#fff;display:flex;align-items:center;justify-content:center;padding:40px}
+.card{background:#fff;width:100%;max-width:440px;border-radius:20px;padding:35px;box-shadow:0 20px 60px rgba(0,0,0,0.08);border:1px solid #f1f5f9}
+.right{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#fff;padding:50px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.right::after{content:'';position:absolute;right:-60px;bottom:-60px;width:400px;height:400px;background:radial-gradient(circle,#fbbf24 0%,transparent 70%);opacity:0.12}
+.logo{display:flex;gap:12px;align-items:center;font-weight:800}
+.logo-icon{width:44px;height:44px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#000;font-size:20px;font-weight:800}
+.label{font-size:11px;font-weight:700;letter-spacing:1px;color:#475569;display:block;margin:14px 0 6px}
+.input,select{width:100%;padding:12px 14px;border:1px solid #e2e8f0;border-radius:12px;font-size:14px;background:#f8fafc;outline:none}
+.input:focus,select:focus{border-color:#0f172a;background:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{width:100%;background:#fbbf24;color:#000;border:none;padding:14px;border-radius:12px;font-weight:800;margin-top:22px;cursor:pointer;letter-spacing:0.5px}
+.btn:hover{background:#f59e0b}
+.tag{display:inline-block;background:#0f172a;color:#fbbf24;border-radius:20px;padding:5px 12px;font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:15px}
+.error{background:#fee2e2;color:#991b1b;padding:10px;border-radius:10px;font-size:13px;margin-bottom:12px}
+.benefit{border:1px solid #334155;border-radius:12px;padding:14px;margin-top:12px;display:flex;gap:12px}
+.benefit b{color:#fff;font-size:13px}
+.benefit p{color:#94a3b8;font-size:12px;margin-top:4px;line-height:1.4}
+</style>
+</head>
+<body>
+
+<div class="left">
+  <div class="card">
+    <span class="tag">NEW EXECUTIVE ONBOARDING</span>
+    <h2 style="font-size:22px">Create account</h2>
+    <p style="color:#64748b;font-size:13px;margin:6px 0 20px">Join the Executive Risk Console</p>
+
+    {% if messages %}
+      {% for message in messages %}<div class="error">{{ message }}</div>{% endfor %}
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+      <div class="grid2">
+        <div>
+          <label class="label">USERNAME</label>
+          <input class="input" type="text" name="username" placeholder="e.g. ceo_lagos" required>
+        </div>
+        <div>
+          <label class="label">BRANCH</label>
+          <select name="branch" required>
+            <option value="LAGOS">LAGOS</option>
+            <option value="ABUJA">ABUJA</option>
+            <option value="ENUGU">ENUGU</option>
+            <option value="KANO">KANO</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="label">EMAIL ADDRESS</label>
+      <input class="input" type="email" name="email" placeholder="you@creditrisk.ng" required>
+
+      <div class="grid2">
+        <div>
+          <label class="label">PASSWORD</label>
+          <input class="input" type="password" name="password1" placeholder="••••••••" required>
+        </div>
+        <div>
+          <label class="label">CONFIRM PASSWORD</label>
+          <input class="input" type="password" name="password2" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <label style="font-size:12px;color:#64748b;display:flex;gap:8px;margin-top:15px"><input type="checkbox" required> I agree CEO has final approval authority</label>
+
+      <button class="btn">CREATE EXECUTIVE ACCOUNT →</button>
+    </form>
+
+    <div style="text-align:center;margin-top:18px;font-size:13px;color:#64748b">Already have account? <a href="/login/" style="color:#0f172a;font-weight:700;text-decoration:none">Sign in</a></div>
+  </div>
+</div>
+
+<div class="right">
+  <div class="logo"><div class="logo-icon">C</div>CREDITRISK<br><small style="font-size:9px;color:#fbbf24;letter-spacing:2px">EXECUTIVE • 2026</small></div>
+
+  <div>
+    <h1 style="font-size:38px;line-height:1.1">Powering<br><span style="color:#fbbf24">₦2.4B+</span><br>decisions.</h1>
+    <p style="color:#94a3b8;font-size:14px;margin-top:15px;line-height:1.6;max-width:380px">Join officers across 4 branches. Submit, analyze risk with ML, and get CEO approval in seconds.</p>
+
+    <div style="margin-top:30px">
+      <div class="benefit"><div style="background:#fbbf24;color:#000;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800">✓</div><div><b>Branch-level access</b><p>You only see your branch. CEO sees all.</p></div></div>
+      <div class="benefit"><div style="background:#10b981;color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800">⚡</div><div><b>ML Risk Engine</b><p>RandomForest model • 98.2% accuracy</p></div></div>
+      <div class="benefit"><div style="background:#0ea5e9;color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800">◉</div><div><b>Instant CEO Approval</b><p>One click approve/reject - audit logged</p></div></div>
+    </div>
+  </div>
+
+  <div style="color:#475569;font-size:11px">TRUSTED BY 4 BRANCHES • LAGOS HQ</div>
+</div>
+
+</body>
+</html>

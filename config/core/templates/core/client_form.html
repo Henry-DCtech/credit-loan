@@ -1,0 +1,50 @@
+{% extends "core/base.html" %}
+{% block content %}
+<style>
+.grid{display:grid;grid-template-columns:1fr 360px;gap:20px}
+.input{width:100%;padding:12px 14px;border:1px solid #e2e8f0;border-radius:12px;margin-top:6px;background:#fff}
+.label{font-size:11px;font-weight:700;color:#475569;letter-spacing:1px;margin-top:14px;display:block}
+.btn-gold{width:100%;background:#fbbf24;color:#000;border:none;padding:14px;border-radius:12px;font-weight:800;margin-top:20px;cursor:pointer}
+.file{border:2px dashed #e2e8f0;border-radius:12px;padding:20px;text-align:center;background:#f8fafc;margin-top:6px}
+</style>
+
+<h2>New Client Onboarding (KYC)</h2>
+<p style="color:#64748b;font-size:13px;margin-bottom:18px">CEO / Officer can register client • Required before loan application</p>
+
+<div class="grid">
+  <div class="card">
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="label">FULL NAME</label><input class="input" name="full_name" required placeholder="Chinedu Okafor"></div>
+        <div><label class="label">PHONE</label><input class="input" name="phone" required placeholder="080..."></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="label">EMAIL</label><input class="input" type="email" name="email" placeholder="client@email.com"></div>
+        <div><label class="label">BVN (11 digits)</label><input class="input" name="bvn" placeholder="221..."></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label class="label">BRANCH</label>
+          <select name="branch" class="input"><option>LAGOS</option><option>ABUJA</option><option>ENUGU</option><option>KANO</option></select>
+        </div>
+        <div><label class="label">CLIENT PHOTO</label><div class="file"><input type="file" name="photo"></div></div>
+      </div>
+      <label class="label">HOME ADDRESS</label>
+      <textarea class="input" name="address" rows="3" placeholder="Full residential address..."></textarea>
+      <button class="btn-gold">+ CREATE CLIENT PROFILE →</button>
+    </form>
+  </div>
+
+  <div>
+    <div class="card" style="background:#0f172a;color:#fff">
+      <small style="color:#fbbf24">KYC CHECKLIST</small>
+      <h3 style="margin:10px 0">Required Docs</h3>
+      <div style="color:#94a3b8;font-size:13px;line-height:2">
+        ✓ Valid ID photo<br>✓ BVN verification<br>✓ Phone verified<br>✓ Address confirmed
+      </div>
+      <div style="margin-top:15px;background:#1e293b;padding:10px;border-radius:10px;font-size:11px">After client creation, you can directly create loan for him from Clients page</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

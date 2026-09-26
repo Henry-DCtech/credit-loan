@@ -1,0 +1,57 @@
+{% extends "core/base.html" %}
+{% block content %}
+<style>
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}
+.kpi{background:#fff;border-radius:16px;padding:18px;box-shadow:0 4px 20px rgba(0,0,0,0.05);border-left:4px solid #e2e8f0}
+.kpi small{font-size:10px;letter-spacing:1px;color:#64748b;display:block}.kpi b{font-size:22px;display:block;margin:4px 0}
+.charts{display:grid;grid-template-columns:1.1fr 0.9fr;gap:20px;margin-bottom:20px}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,0.05)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:10px;color:#64748b;text-align:left;padding:10px;border-bottom:1px solid #e2e8f0}
+td{padding:12px 10px;border-bottom:1px solid #f1f5f9}
+.badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.badge.APPROVED{background:#dcfce7;color:#166534}.badge.PENDING{background:#fef9c3;color:#854d0e}.badge.REJECTED{background:#fee2e2;color:#991b1b}
+@media(max-width:900px){.kpis,.charts{grid-template-columns:1fr}}
+</style>
+
+<div class="kpis">
+  <div class="kpi" style="border-left-color:#fbbf24"><small>TOTAL APPLICATIONS</small><b>{{ total }}</b></div>
+  <div class="kpi" style="border-left-color:#0f172a"><small>PENDING REVIEW</small><b>{{ pending }}</b></div>
+  <div class="kpi" style="border-left-color:#10b981"><small>APPROVED</small><b>{{ approved }}</b></div>
+  <div class="kpi" style="border-left-color:#ef4444"><small>TOTAL CLIENTS</small><b>{{ total_clients }}</b></div>
+  
+  <!-- NEW 3 -->
+  <div class="kpi" style="border-left-color:#3b82f6"><small>REPAYMENT TODAY</small><b>₦{{ repay_today|floatformat:0 }}</b><small style="color:#3b82f6">Per Day</small></div>
+  <div class="kpi" style="border-left-color:#8b5cf6"><small>MONEY DISBURSED TODAY</small><b>₦{{ disbursed_today|floatformat:0 }}</b><small>{{ disbursed_count_today }} clients</small></div>
+  <div class="kpi" style="border-left-color:#ef4444"><small>DEFAULT ALERTS</small><b>{{ total_defaulters }}</b><small style="color:#ef4444">Missed Repayment</small></div>
+  <div class="kpi" style="border-left-color:#ef4444"><small>LOAN DEFAULT TODAY</small><b>₦{{ default_today|floatformat:0 }}</b><small style="color:#ef4444">Per Day</small></div>
+  <div class="kpi" style="border-left-color:#10b981"><small>SAVINGS TODAY (BRANCH)</small><b>₦{{ saving_today|floatformat:0 }}</b><small>{{ profile.branch }}</small></div>
+  <div class="kpi" style="border-left-color:#f59e0b"><small>REJECTED</small><b>{{ rejected }}</b></div>
+</div>
+
+<div class="charts">
+  <div class="card"><h3 style="font-size:11px;letter-spacing:1px">APPLICATIONS TREND</h3><div style="height:260px"><canvas id="lineChart"></canvas></div></div>
+  <div class="card"><h3 style="font-size:11px;letter-spacing:1px">STATUS BREAKDOWN</h3><div style="height:260px"><canvas id="donutChart"></canvas></div></div>
+</div>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;margin-bottom:10px"><h3 style="font-size:11px;letter-spacing:1px">RECENT APPLICATIONS</h3><a href="/applications/" style="font-size:11px;text-decoration:none;font-weight:700">View All →</a></div>
+  <table>
+    <thead><tr><th>ID</th><th>APPLICANT</th><th>BRANCH</th><th>AMOUNT</th><th>STATUS</th><th>DATE</th></tr></thead>
+    <tbody>
+      {% for app in recent_loans %}
+      <tr><td>#{{ app.id }}</td><td><b>{{ app.full_name }}</b></td><td>{{ app.branch }}</td><td>₦{{ app.loan_amount|floatformat:0 }}</td><td><span class="badge {{ app.status }}">{{ app.status }}</span></td><td>{{ app.created_at|date:"M d" }}</td></tr>
+      {% empty %}<tr><td colspan="6" style="text-align:center;color:#94a3b8">No data</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const statusData = JSON.parse('{{ status_json|escapejs }}');
+const monthsData = JSON.parse('{{ months_json|escapejs }}');
+const countsData = JSON.parse('{{ counts_json|escapejs }}');
+new Chart(document.getElementById('donutChart'),{type:'doughnut',data:{labels:['Approved','Pending','Rejected'],datasets:[{data:statusData,backgroundColor:['#10b981','#fbbf24','#ef4444'],borderWidth:0}]},options:{cutout:'68%',plugins:{legend:{display:false}},maintainAspectRatio:false}});
+new Chart(document.getElementById('lineChart'),{type:'line',data:{labels:monthsData,datasets:[{data:countsData,borderColor:'#0f172a',backgroundColor:'rgba(251,191,36,0.2)',fill:true,tension:0.4,borderWidth:2}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},maintainAspectRatio:false}});
+</script>
+{% endblock %}

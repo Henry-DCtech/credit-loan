@@ -1,0 +1,86 @@
+﻿{% extends "core/base.html" %}
+{% block content %}
+{% if messages %}
+{% for message in messages %}
+<div class="mb-3">
+    <a href="?view=ALL" class="btn btn-sm {% if view_mode == 'ALL' %}btn-dark{% else %}btn-outline-dark{% endif %}">All Loans</a>
+    {% if profile.role == 'CEO' or user.is_superuser %}
+    <a href="?view=APPROVED" class="btn btn-sm {% if view_mode == 'APPROVED' %}btn-success{% else %}btn-outline-success{% endif %}">Approved Loans (CEO)</a>
+    {% endif %}
+</div>
+<div class="alert"><span>{{ message }}</span><a href="#" onclick="this.parentElement.style.display='none'" style="text-decoration:none">✕</a></div>
+{% endfor %}
+{% endif %}
+
+{% if app.status == 'APPROVED' and not app.is_disbursed %}
+<a href="{% url 'disburse_loan' app.id %}" style="background:#8b5cf6;color:#fff;padding:5px 10px;border-radius:6px;text-decoration:none;font-size:11px">Disburse & Email</a>
+{% elif app.is_disbursed %}
+<span style="color:#10b981;font-size:11px">✓ Disbursed {{ app.disbursed_at|date:"M d" }}</span>
+{% endif %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+  <h2>CEO Approval Console</h2>
+  <span style="background:var(--gold);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700">CEO MODE: {{ user.username }}</span>
+</div>
+
+<div class="card">
+<table>
+<tr><th>Applicant</th><th>Branch</th><th>Amount</th><th>Risk</th><th>Status</th><th style="text-align:right">CLICK TO DECIDE</th></tr>
+{% for app in applications %}
+<tr>
+  <td style="font-weight:600">{{ app.full_name }}</td>
+  <td>{{ app.branch }}</td>
+  <td>₦{{ app.amount }}</td>
+  <td style="font-weight:700">{{ app.risk_score|default:"0.0" }}%</td>
+  <td>
+    {% if profile.role == 'CEO' or profile.role == 'ADMIN' or user.is_superuser %}
+<form method="post" action="{% url 'assign_officer' app.id %}" style="display:inline;">
+    {% csrf_token %}
+    <select name="officer_id" required style="padding:4px;">
+        <option value="">Assign Officer</option>
+        {% for o in officers %}
+        <option value="{{ o.user.id }}">{{ o.user.username }} ({{ o.role }} - {{ o.branch }})</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-info">Assign</button>
+</form>
+{% endif %}
+
+{% if app.assigned_officer %}
+<small class="text-muted">Assigned to: {{ app.assigned_officer.username }}</small>
+{% endif %}
+  </td>
+  <td style="text-align:right">
+    {% if app.decision == 'PENDING' %}
+      <a href="/approve/{{ app.id }}/?action=approve" class="btn-dark" style="text-decoration:none">APPROVE</a>
+      <a href="/approve/{{ app.id }}/?action=reject" class="btn-red" style="text-decoration:none;margin-left:6px">REJECT</a>
+    {% else %}
+      <span style="color:#10b981;font-size:13px;font-weight:600">✓ Done - {{ app.decision }}</span>
+    {% endif %}
+  </td>
+</tr>
+{% endfor %}
+</table>
+<p style="text-align:center;color:#94a3b8;font-size:12px;margin-top:15px">Click APPROVE or REJECT - works instantly for CEO</p>
+</div>
+
+{% if default_alerts %}
+<div class="card" style="margin-top:20px;border-left:4px solid #ef4444">
+  <h3 style="font-size:11px;letter-spacing:1px;color:#ef4444">⚠️ DEFAULT ALERT - MISSED REPAYMENT</h3>
+  <table style="margin-top:10px">
+    <thead><tr><th>CLIENT</th><th>BRANCH</th><th>AMOUNT</th><th>DUE DATE</th><th>DAYS OVERDUE</th></tr></thead>
+    <tbody>
+      {% for d in default_alerts %}
+      <tr style="background:#fef2f2">
+        <td><b>{{ d.full_name }}</b></td>
+        <td>{{ d.branch }}</td>
+        <td>₦{{ d.loan_amount|floatformat:0 }}</td>
+        <td>{{ d.repayment_due_date }}</td>
+        <td style="color:#ef4444;font-weight:700">{{ d.repayment_due_date|timesince }} ago</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

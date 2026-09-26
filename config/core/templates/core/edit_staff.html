@@ -1,0 +1,20 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-4" style="max-width:500px">
+<div class="card p-4">
+<h5>Change Role: {{ staff.user.username }}</h5>
+<form method="POST">{% csrf_token %}
+<select name="role" class="form-select mb-3">
+<option value="OFFICER" {% if staff.role == 'OFFICER' %}selected{% endif %}>OFFICER</option>
+<option value="BM" {% if staff.role == 'BM' %}selected{% endif %}>BM</option>
+<option value="ADMIN" {% if staff.role == 'ADMIN' %}selected{% endif %}>ADMIN</option>
+<option value="CEO" {% if staff.role == 'CEO' %}selected{% endif %}>CEO</option>
+</select>
+<select name="branch" class="form-select mb-3">
+<option value="LAGOS">LAGOS</option><option value="ABUJA">ABUJA</option><option value="PH">PH</option><option value="KANO">KANO</option>
+</select>
+<button class="btn btn-gold w-100">Update Role</button>
+</form>
+</div>
+</div>
+{% endblock %}
