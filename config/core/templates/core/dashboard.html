@@ -1,57 +1,235 @@
 {% extends "core/base.html" %}
 {% block content %}
+
+{{ monthsData|json_script:"monthsData" }}
+{{ countsData|json_script:"countsData" }}
+{{ status_json|json_script:"statusData" }}
+
 <style>
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}
-.kpi{background:#fff;border-radius:16px;padding:18px;box-shadow:0 4px 20px rgba(0,0,0,0.05);border-left:4px solid #e2e8f0}
-.kpi small{font-size:10px;letter-spacing:1px;color:#64748b;display:block}.kpi b{font-size:22px;display:block;margin:4px 0}
-.charts{display:grid;grid-template-columns:1.1fr 0.9fr;gap:20px;margin-bottom:20px}
-.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,0.05)}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{font-size:10px;color:#64748b;text-align:left;padding:10px;border-bottom:1px solid #e2e8f0}
-td{padding:12px 10px;border-bottom:1px solid #f1f5f9}
-.badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700}
-.badge.APPROVED{background:#dcfce7;color:#166534}.badge.PENDING{background:#fef9c3;color:#854d0e}.badge.REJECTED{background:#fee2e2;color:#991b1b}
-@media(max-width:900px){.kpis,.charts{grid-template-columns:1fr}}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+*{font-family:'Inter',sans-serif}
+.dash-wrap{max-width:1280px;margin:0 auto}
+.card{background:#fff;border:1px solid #eef2f7;border-radius:24px;padding:24px;box-shadow:0 20px 60px rgba(15,23,42,.06)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+@media(max-width:980px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-val{font-size:28px;font-weight:900;letter-spacing:-1px;margin-top:8px}
+.badge{padding:6px 12px;border-radius:99px;font-size:10px;font-weight:800;letter-spacing:.8px;display:inline-block}
 </style>
 
-<div class="kpis">
-  <div class="kpi" style="border-left-color:#fbbf24"><small>TOTAL APPLICATIONS</small><b>{{ total }}</b></div>
-  <div class="kpi" style="border-left-color:#0f172a"><small>PENDING REVIEW</small><b>{{ pending }}</b></div>
-  <div class="kpi" style="border-left-color:#10b981"><small>APPROVED</small><b>{{ approved }}</b></div>
-  <div class="kpi" style="border-left-color:#ef4444"><small>TOTAL CLIENTS</small><b>{{ total_clients }}</b></div>
+<div class="dash-wrap">
+  <h2 style="font-weight:900;letter-spacing:-.5px;font-size:26px">Dashboard</h2>
+
+  <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px;">
+  <div class="card" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; border: 0;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <p style="font-size: 10px; letter-spacing: 1.2px; opacity: 0.6; font-weight: 800; margin:0">TOTAL CLIENTS</p>
+        <h2 style="font-size: 32px; font-weight: 900; margin: 8px 0 0; letter-spacing: -1px;">{{ total_clients }}</h2>
+      </div>
+      <div style="width:48px;height:48px;background:rgba(255,255,255,.1);border-radius:14px;display:grid;place-items:center;">👥</div>
+    </div>
+  </div>
+
+  <div class="card" style="background: linear-gradient(135deg, #065f46 0%, #10b981 100%); color: #fff; border: 0;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <p style="font-size: 10px; letter-spacing: 1.2px; opacity: 0.8; font-weight: 800; margin:0">TOTAL DISBURSED</p>
+        <h2 style="font-size: 26px; font-weight: 900; margin: 8px 0 0; letter-spacing: -1px;">₦{{ total_disbursed|floatformat:0 }}</h2>
+      </div>
+      <div style="width:48px;height:48px;background:rgba(255,255,255,.15);border-radius:14px;display:grid;place-items:center;">💸</div>
+    </div>
+  </div>
+
+  <div class="card" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: #fff; border: 0;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <p style="font-size: 10px; letter-spacing: 1.2px; opacity: 0.8; font-weight: 800; margin:0">TOTAL SAVINGS</p>
+        <h2 style="font-size: 26px; font-weight: 900; margin: 8px 0 0; letter-spacing: -1px;">₦{{ total_savings|floatformat:0 }}</h2>
+      </div>
+      <div style="width:48px;height:48px;background:rgba(255,255,255,.15);border-radius:14px;display:grid;place-items:center;">🏦</div>
+    </div>
+  </div>
+</div>
   
-  <!-- NEW 3 -->
-  <div class="kpi" style="border-left-color:#3b82f6"><small>REPAYMENT TODAY</small><b>₦{{ repay_today|floatformat:0 }}</b><small style="color:#3b82f6">Per Day</small></div>
-  <div class="kpi" style="border-left-color:#8b5cf6"><small>MONEY DISBURSED TODAY</small><b>₦{{ disbursed_today|floatformat:0 }}</b><small>{{ disbursed_count_today }} clients</small></div>
-  <div class="kpi" style="border-left-color:#ef4444"><small>DEFAULT ALERTS</small><b>{{ total_defaulters }}</b><small style="color:#ef4444">Missed Repayment</small></div>
-  <div class="kpi" style="border-left-color:#ef4444"><small>LOAN DEFAULT TODAY</small><b>₦{{ default_today|floatformat:0 }}</b><small style="color:#ef4444">Per Day</small></div>
-  <div class="kpi" style="border-left-color:#10b981"><small>SAVINGS TODAY (BRANCH)</small><b>₦{{ saving_today|floatformat:0 }}</b><small>{{ profile.branch }}</small></div>
-  <div class="kpi" style="border-left-color:#f59e0b"><small>REJECTED</small><b>{{ rejected }}</b></div>
+  <!-- STATS -->
+  <style>
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #eef2f7;
+  box-shadow: 0 8px 24px rgba(15,23,42,0.06);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.stat-card:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(15,23,42,0.12); }
+.stat-card .icon-box {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: grid; place-items: center; font-size: 20px; font-weight: 900;
+}
+.stat-card .stat-val { font-size: 32px; font-weight: 900; letter-spacing: -1.5px; margin: 10px 0 2px; line-height: 1; }
+.stat-card .stat-label { font-size: 10px; letter-spacing: 1.2px; font-weight: 800; opacity: .55; }
+.stat-card::after {
+  content: ""; position: absolute; right: -20px; top: -20px;
+  width: 90px; height: 90px; border-radius: 50%; opacity: .12;
+}
+</style>
+
+<div class="stat-grid">
+  <!-- APPROVED -->
+  <div class="stat-card" style="background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span class="badge" style="background:#dcfce7; color:#166534; border:1px solid #bbf7d0;">● APPROVED</span>
+      <div class="icon-box" style="background:#dcfce7; color:#15803d;">✓</div>
+    </div>
+    <div class="stat-val" style="color:#14532d;">{{ approved }}</div>
+    <div class="stat-label">TOTAL APPROVED</div>
+    <div style="position:absolute; right:-10px; top:-10px; width:80px; height:80px; background:#22c55e; opacity:.1; border-radius:50%;"></div>
+  </div>
+
+  <!-- PENDING -->
+  <div class="stat-card" style="background: linear-gradient(180deg, #ffffff 0%, #fefce8 100%);">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span class="badge" style="background:#fef9c3; color:#854d0e; border:1px solid #fde68a;">◐ PENDING</span>
+      <div class="icon-box" style="background:#fef9c3; color:#a16207;">↻</div>
+    </div>
+    <div class="stat-val" style="color:#713f12;">{{ pending }}</div>
+    <div class="stat-label">AWAITING ACTION</div>
+    <div style="position:absolute; right:-10px; top:-10px; width:80px; height:80px; background:#eab308; opacity:.12; border-radius:50%;"></div>
+  </div>
+
+  <!-- REJECTED -->
+  <div class="stat-card" style="background: linear-gradient(180deg, #ffffff 0%, #fef2f2 100%);">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span class="badge" style="background:#fee2e2; color:#991b1b; border:1px solid #fecaca;">✕ REJECTED</span>
+      <div class="icon-box" style="background:#fee2e2; color:#b91c1c;">✕</div>
+    </div>
+    <div class="stat-val" style="color:#7f1d1d;">{{ rejected }}</div>
+    <div class="stat-label">DECLINED REQUESTS</div>
+    <div style="position:absolute; right:-10px; top:-10px; width:80px; height:80px; background:#ef4444; opacity:.1; border-radius:50%;"></div>
+  </div>
+
+  <!-- REVIEW -->
+  <div class="stat-card" style="background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span class="badge" style="background:#e0f2fe; color:#0c4a6e; border:1px solid #bae6fd;">◎ REVIEW</span>
+      <div class="icon-box" style="background:#e0f2fe; color:#0369a1;">◉</div>
+    </div>
+    <div class="stat-val" style="color:#0c4a6e;">{{ review }}</div>
+    <div class="stat-label">UNDER REVIEW</div>
+    <div style="position:absolute; right:-10px; top:-10px; width:80px; height:80px; background:#0ea5e9; opacity:.1; border-radius:50%;"></div>
+  </div>
 </div>
 
-<div class="charts">
-  <div class="card"><h3 style="font-size:11px;letter-spacing:1px">APPLICATIONS TREND</h3><div style="height:260px"><canvas id="lineChart"></canvas></div></div>
-  <div class="card"><h3 style="font-size:11px;letter-spacing:1px">STATUS BREAKDOWN</h3><div style="height:260px"><canvas id="donutChart"></canvas></div></div>
+  <!-- CHARTS -->
+  <div style="display:grid;grid-template-columns:1.4fr 0.8fr;gap:24px">
+    <div class="card">
+      <h3 style="font-size:11px;letter-spacing:1.5px;font-weight:800;margin:0 0 16px">LOAN TREND</h3>
+      <div style="height:280px"><canvas id="lineCtx"></canvas></div>
+    </div>
+    <div class="card" style="text-align:center">
+      <h3 style="font-size:11px;letter-spacing:1.5px;font-weight:800;margin:0 0 16px;text-align:left">BY STATUS</h3>
+      <div style="height:280px"><canvas id="statusDonut"></canvas></div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap">
+        <span style="font-size:10px"><span style="display:inline-block;width:8px;height:8px;background:#10b981;border-radius:50%"></span> Approved</span>
+        <span style="font-size:10px"><span style="display:inline-block;width:8px;height:8px;background:#f59e0b;border-radius:50%"></span> Pending</span>
+        <span style="font-size:10px"><span style="display:inline-block;width:8px;height:8px;background:#ef4444;border-radius:50%"></span> Rejected</span>
+        <span style="font-size:10px"><span style="display:inline-block;width:8px;height:8px;background:#3b82f6;border-radius:50%"></span> Review</span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="card">
-  <div style="display:flex;justify-content:space-between;margin-bottom:10px"><h3 style="font-size:11px;letter-spacing:1px">RECENT APPLICATIONS</h3><a href="/applications/" style="font-size:11px;text-decoration:none;font-weight:700">View All →</a></div>
-  <table>
-    <thead><tr><th>ID</th><th>APPLICANT</th><th>BRANCH</th><th>AMOUNT</th><th>STATUS</th><th>DATE</th></tr></thead>
-    <tbody>
-      {% for app in recent_loans %}
-      <tr><td>#{{ app.id }}</td><td><b>{{ app.full_name }}</b></td><td>{{ app.branch }}</td><td>₦{{ app.loan_amount|floatformat:0 }}</td><td><span class="badge {{ app.status }}">{{ app.status }}</span></td><td>{{ app.created_at|date:"M d" }}</td></tr>
-      {% empty %}<tr><td colspan="6" style="text-align:center;color:#94a3b8">No data</td></tr>{% endfor %}
-    </tbody>
-  </table>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- CHART.JS MUST BE BEFORE SCRIPT -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
-const statusData = JSON.parse('{{ status_json|escapejs }}');
-const monthsData = JSON.parse('{{ months_json|escapejs }}');
-const countsData = JSON.parse('{{ counts_json|escapejs }}');
-new Chart(document.getElementById('donutChart'),{type:'doughnut',data:{labels:['Approved','Pending','Rejected'],datasets:[{data:statusData,backgroundColor:['#10b981','#fbbf24','#ef4444'],borderWidth:0}]},options:{cutout:'68%',plugins:{legend:{display:false}},maintainAspectRatio:false}});
-new Chart(document.getElementById('lineChart'),{type:'line',data:{labels:monthsData,datasets:[{data:countsData,borderColor:'#0f172a',backgroundColor:'rgba(251,191,36,0.2)',fill:true,tension:0.4,borderWidth:2}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},maintainAspectRatio:false}});
+document.addEventListener("DOMContentLoaded", function(){
+  console.log("Dashboard JS running...");
+
+  try{
+    const statusObj = JSON.parse(document.getElementById('statusData').textContent);
+    const monthsRaw = JSON.parse(document.getElementById('monthsData').textContent);
+    const countsRaw = JSON.parse(document.getElementById('countsData').textContent);
+    console.log("DATA:", statusObj, monthsRaw, countsRaw);
+
+    // DONUT
+    const donutEl = document.getElementById('statusDonut');
+    if(donutEl){
+      new Chart(donutEl, {
+        type:'doughnut',
+        data:{
+          labels:['Approved','Pending','Rejected','Review'],
+          datasets:[{
+            data:[statusObj.approved||0, statusObj.pending||0, statusObj.rejected||0, statusObj.review||0],
+            backgroundColor:['#10b981','#f59e0b','#ef4444','#3b82f6'],
+            borderWidth:0,
+            hoverOffset:8
+          }]
+        },
+        options:{cutout:'68%', plugins:{legend:{display:false}}, responsive:true, maintainAspectRatio:false}
+      });
+    }
+
+    // LINE - FIXED (no duplicate vars)
+    const lineEl = document.getElementById('lineCtx');
+    if(lineEl){
+      let lineMonths = monthsRaw;
+      let lineCounts = countsRaw;
+
+      if(!lineMonths || lineMonths.length === 0){
+        lineMonths = ['Mar','Apr','May','Jun','Jul','Aug'];
+        lineCounts = [2,5,8,4,6,9];
+      }
+
+      console.log("LINE DATA:", lineMonths, lineCounts);
+
+      const ctx = lineEl.getContext('2d');
+      const gradient = ctx.createLinearGradient(0,0,0,300);
+      gradient.addColorStop(0,'rgba(59,130,246,0.35)');
+      gradient.addColorStop(1,'rgba(59,130,246,0)');
+
+      new Chart(ctx, {
+        type:'line',
+        data:{
+          labels: lineMonths,
+          datasets:[{
+            label:'Loans',
+            data: lineCounts,
+            borderColor:'#3b82f6',
+            backgroundColor:gradient,
+            fill:true,
+            tension:0.45,
+            borderWidth:3,
+            pointRadius:4,
+            pointBackgroundColor:'#3b82f6',
+            pointBorderColor:'#fff',
+            pointBorderWidth:2,
+            pointHoverRadius:6
+          }]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{
+            y:{beginAtZero:true, grid:{color:'#f1f5f9'}, border:{display:false}, ticks:{color:'#94a3b8'}},
+            x:{grid:{display:false}, border:{display:false}, ticks:{color:'#94a3b8'}}
+          }
+        }
+      });
+    }
+
+  }catch(e){
+    console.error("CHART ERROR:", e);
+  }
+});
 </script>
 {% endblock %}

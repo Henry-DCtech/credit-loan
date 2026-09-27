@@ -51,3 +51,19 @@ class OfficerRegistrationForm(forms.Form):
         user = User.objects.create_user(username=username, password=password)
         Profile.objects.create(user=user, role=role, branch=branch)
         return user
+
+from django import forms
+from .models import Client
+
+class ClientForm(forms.ModelForm):
+    class Meta:
+        model = Client
+        fields = ['full_name','phone_number','email','bvn','branch','address']
+        widgets = {
+            'full_name': forms.TextInput(attrs={'class':'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class':'form-control'}),
+            'email': forms.EmailInput(attrs={'class':'form-control'}),
+            'bvn': forms.TextInput(attrs={'class':'form-control'}),
+            'branch': forms.Select(attrs={'class':'form-select'}),
+            'address': forms.Textarea(attrs={'class':'form-control','rows':2}),
+        }

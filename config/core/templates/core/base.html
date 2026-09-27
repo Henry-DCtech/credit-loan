@@ -1,328 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CreditRisk Executive</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card: #ffffff;
-      --gold: #fbbf24;
-      --green: #10b981;
-      --red: #ef4444
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Inter', sans-serif
-    }
-
-    body {
-      display: flex;
-      background: #f1f5f9;
-      min-height: 100vh
-    }
-
-    .sidebar {
-      width: 260px;
-      background: var(--bg);
-      color: #94a3b8;
-      padding: 20px 15px;
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      height: 100vh;
-      left: 0;
-      top: 0;
-      z-index: 50;
-      transition: transform 0.3s ease
-    }
-
-    .sidebar .logo {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      color: #fff;
-      font-weight: 700;
-      letter-spacing: 1px;
-      margin-bottom: 30px
-    }
-
-    .logo-icon {
-      width: 38px;
-      height: 38px;
-      background: linear-gradient(135deg, #fbbf24, #f59e0b);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #000;
-      font-weight: 800
-    }
-
-    .nav-label {
-      font-size: 10px;
-      letter-spacing: 2px;
-      margin: 22px 0 10px;
-      opacity: 0.6
-    }
-
-    .nav-link {
-      display: flex;
-      gap: 10px;
-      padding: 11px 14px;
-      border-radius: 10px;
-      color: #94a3b8;
-      text-decoration: none;
-      font-size: 14px;
-      transition: 0.2s
-    }
-
-    .nav-link:hover,
-    .nav-link.active {
-      background: #1e293b;
-      color: #fff
-    }
-
-    .nav-link.active {
-      border-left: 3px solid var(--gold)
-    }
-
-    .badge-branch {
-      border: 1px solid #334155;
-      border-radius: 20px;
-      padding: 4px 10px;
-      font-size: 11px;
-      margin-top: 20px;
-      display: inline-block;
-      color: #e2e8f0
-    }
-
-    .main {
-      margin-left: 260px;
-      flex: 1;
-      padding: 20px 30px;
-      min-width: 0
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 10px
-    }
-
-    .user-card {
-      margin-top: auto;
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 12px;
-      display: flex;
-      gap: 10px;
-      align-items: center
-    }
-
-    .user-card .av {
-      width: 32px;
-      height: 32px;
-      background: var(--gold);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #000;
-      font-weight: 700
-    }
-
-    .btn-gold {
-      background: var(--gold);
-      color: #000;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer
-    }
-
-    .card {
-      background: var(--card);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05)
-    }
-
-    .alert {
-      padding: 12px 16px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px
-    }
-
-    .alert-success {
-      background: #d1fae5;
-      border-left: 4px solid #10b981;
-      color: #065f46
-    }
-
-    .alert-error {
-      background: #fee2e2;
-      border-left: 4px solid #ef4444;
-      color: #991b1b
-    }
-
-    /* MOBILE */
-    #mobile-menu-btn {
-      display: none;
-      position: fixed;
-      top: 12px;
-      left: 12px;
-      z-index: 60;
-      background: var(--gold);
-      border: none;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-weight: 800;
-      cursor: pointer
-    }
-
-    #overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 45
-    }
-
-    @media (max-width: 768px) {
-      #mobile-menu-btn {
-        display: block
-      }
-
-      .sidebar {
-        transform: translateX(-100%)
-      }
-
-      .sidebar.open {
-        transform: translateX(0)
-      }
-
-      #overlay.show {
-        display: block
-      }
-
-      .main {
-        margin-left: 0;
-        width: 100%;
-        padding: 70px 15px 20px 15px
-      }
-
-      .topbar h2 {
-        font-size: 18px
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CREDITRISK • {{ profile.role }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{ --nav:#0F172E; --gold:#E8C468; --gold2:#F5D78E; --line:rgba(255,255,255,0.07); }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;background:#f4f6f9;color:#0f172a;display:flex;min-height:100vh}
+a{text-decoration:none}
+.sidebar{width:230px;min-width:230px;background:linear-gradient(180deg,#0F172E 0%,#0C142C 100%);padding:16px 12px;position:fixed;height:100vh;display:flex;flex-direction:column;border-right:1px solid var(--line);z-index:20}
+.brand{display:flex;gap:10px;align-items:center;padding:8px 6px 18px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.brand-icon{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 100%);display:grid;place-items:center;font-weight:800;color:#111E3A}
+.brand-text b{display:block;font-size:11.5px;letter-spacing:1.4px;color:#E9D9A5;line-height:1}
+.brand-text span{display:block;font-size:7.5px;letter-spacing:2.2px;color:#7A849E;font-weight:700;margin-top:4px}
+.brand-text small{font-size:7px;letter-spacing:1.8px;color:var(--gold);font-weight:800}
+.nav-label{font-size:8.5px;letter-spacing:1.8px;color:#5B6783;font-weight:800;padding:16px 10px 8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10.5px 12px;border-radius:10px;color:#8A94B0;font-size:12.5px;font-weight:500;transition:.15s;border:1px solid transparent;margin-bottom:3px}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:#D8DEEB}
+.nav-item.active{background:rgba(232,196,104,0.14);color:var(--gold);border-color:rgba(232,196,104,0.25)}
+.ico{width:16px;text-align:center;font-size:13px}
+.branch-pill{margin:2px 8px;padding:6px 10px;border-radius:999px;border:1px solid rgba(232,196,104,0.3);color:var(--gold);font-size:9px;letter-spacing:.8px;display:inline-flex;gap:5px;align-items:center;width:fit-content;font-weight:700;background:rgba(232,196,104,0.08)}
+.bottom{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+.user-box{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,0.04);border:1px solid var(--line);padding:10px;border-radius:12px;margin-bottom:10px}
+.avatar{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#E8C468,#F5D78E);display:grid;place-items:center;font-weight:800;font-size:12px;color:#0F172E}
+.user-box b{font-size:11px;color:#E2E8F0;display:block}
+.user-box small{font-size:9px;color:#7A849E;background:#1C2642;padding:2px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.08);margin-top:3px;display:inline-block;font-weight:700}
+.logout{display:block;text-align:center;padding:10px;border-radius:10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.15);color:#F87171;font-size:12px;font-weight:700}
+.main{margin-left:230px;flex:1;min-width:0}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:5}
+.topbar h2{font-size:15px;font-weight:800}
+.topbar p{font-size:11.5px;color:#64748b;margin-top:2px}
+.chip{font-size:10px;padding:5px 10px;border-radius:999px;border:1px solid #e2e8f0;background:#f8fafc;font-weight:700;color:#475569}
+.content{padding:18px 22px}
+@media(max-width:900px){.sidebar{transform:translateX(-100%)}.main{margin-left:0}}
+</style>
 </head>
-
 <body>
 
-  <button id="mobile-menu-btn">☰</button>
-  <div id="overlay"></div>
-
-  <div class="sidebar" id="sidebar">
-    <div class="logo">
-      <div class="logo-icon">C</div>
-      <div>CREDITRISK<br><small style="font-size:9px;letter-spacing:2px;color:#fbbf24">EXECUTIVE • 2026</small></div>
-    </div>
-
-    <div class="nav-label">OVERVIEW</div>
-    <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="/dashboard/">⊞ Dashboard</a>
-    <a class="nav-link {% if request.path == '/analyzer/' %}active{% endif %}" href="/analyzer/">⚙ Risk Analyzer</a>
-
-    <div class="nav-label">OPERATIONS</div>
-    <a class="nav-link {% if request.path == '/apply/' %}active{% endif %}" href="/apply/">+ New Application</a>
-    <a class="nav-link {% if request.path == '/applications/' %}active{% endif %}" href="/applications/">▤ All
-      Applications</a>
-    <a class="nav-link {% if 'clients' in request.path %}active{% endif %}" href="/clients/">👤 Clients</a>
-    <a class="nav-link {% if request.path == '/clients/new/' %}active{% endif %}" href="/clients/new/">+ New Client</a>
-
-    <div class="nav-label">ADMIN</div>
-    {% if user.is_superuser or user.username == 'CEO' or user.profile.role == 'CEO' %}
-    <a class="nav-link {% if 'officers' in request.path %}active{% endif %}" href="/officers/register/">👥 Officer
-      Management</a>
-    <!-- <a class="nav-link" href="{% url 'register_officer' %}" style="font-size:12px;color:#93c5fd">+ Register Officer</a> -->
-    {% endif %}
-
-    <div class="nav-label">BRANCHES</div>
-    <div class="badge-branch">◉ {{ user.profile.branch|default:"LAGOS" }}</div>
-
-    <div class="user-card">
-      <div class="av">{{ user.username|slice:":1"|upper }}</div>
-      <div>
-        <div style="color:#fff;font-size:13px;font-weight:600">{{ user.username }}</div>
-        <div
-          style="font-size:10px;border:1px solid #fbbf24;border-radius:4px;padding:1px 5px;display:inline-block;color:#fbbf24">
-          {{ user.profile.role|default:"OFFICER" }}
-        </div>
-      </div>
-    </div>
-    <a href="/logout/"
-      style="margin-top:12px;background:#2a1a1a;color:#fca5a5;text-decoration:none;padding:10px;border-radius:10px;font-size:13px;text-align:center">Logout</a>
+<div class="sidebar">
+  <div class="brand">
+    <div class="brand-icon">C</div>
+    <div class="brand-text"><b>CREDITRISK</b><span>EXECUTIVE •</span><small>2026</small></div>
   </div>
 
-  <div class="main">
-    <div class="topbar">
-      <div>
-        <h2 style="font-size:20px">Executive Risk Console</h2>
-        <p style="font-size:12px;color:#64748b">CEO has sole approval authority • All branches</p>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center"><span
-          style="font-size:11px;border:1px solid #e2e8f0;padding:4px 10px;border-radius:20px;background:#fff">🛡 ML
-          Model: Active</span><span
-          style="font-size:11px;background:#0f172a;color:#fff;padding:4px 10px;border-radius:20px">🕒 {% now "d M Y"
-          %}</span></div>
-    </div>
+  <div class="nav-label">OVERVIEW</div>
+  <a class="nav-item {% if request.path == '/dashboard/' %}active{% endif %}" href="/dashboard/"><span class="ico">⊞</span> Dashboard</a>
+  <a class="nav-item {% if 'ceo_analyzer' in request.path %}active{% endif %}" href="/ceo_analyzer/"><span class="ico">◍</span> Risk Analyzer</a>
 
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">{{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
+  <div class="nav-label">OPERATIONS</div>
+  <a class="nav-item {% if request.path == '/clients/new/' %}active{% endif %}" href="/clients/new/"><span class="ico">👤</span> New Client</a>
+  <a class="nav-item {% if request.path == '/apply/' %}active{% endif %}" href="/apply/"><span class="ico">＋</span> New Loan Application</a>
+  <a class="nav-item {% if 'applications' in request.path and 'ceo' not in request.path %}active{% endif %}" href="/applications/"><span class="ico">🗂</span> All Applications</a>
+  <a class="nav-item {% if request.path == '/clients/' and 'new' not in request.path %}active{% endif %}" href="/clients/"><span class="ico">👥</span> All Clients</a>
 
+  {% if profile.role == 'CEO' or profile.role == 'ADMIN' or user.is_superuser %}
+  <div class="nav-label">ADMINISTRATION</div>
+  <a class="nav-item {% if 'officers/register' in request.path or request.path == '/register/' %}active{% endif %}" href="/officers/register/"><span class="ico">🛡</span> Officer Management</a>
+  {% endif %}
+
+  <div class="nav-label">BRANCHES</div>
+  <div class="branch-pill">◍ {{ profile.branch|upper }}</div>
+
+  <div class="bottom">
+    <div class="user-box">
+      <div class="avatar">{{ user.username|slice:":1"|upper }}</div>
+      <div><b>{{ user.username }}</b><small>{{ profile.role }}</small></div>
+    </div>
+    <a class="logout" href="/logout/">Logout</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div><h2>Executive Risk Console</h2><p>CEO has sole approval authority • All branches</p></div>
+    <div style="display:flex;gap:8px"><span class="chip">🛡 ML Model: Active</span><span class="chip" style="background:#0f172a;color:#fff">◷ {% now "d M Y" %}</span>{% if profile.role == 'CEO' %}<span class="chip" style="background:#facc15;color:#000">CEO MODE: {{ user.username }}</span>{% endif %}</div>
+  </div>
+  <div class="content">
+    {% if messages %}{% for m in messages %}<div style="background:#dcfce7;border:1px solid #bbf7d0;padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:12px;color:#166534">{{ m }}</div>{% endfor %}{% endif %}
     {% block content %}{% endblock %}
   </div>
-
-  <script>
-    const btn = document.getElementById('mobile-menu-btn');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-
-    function toggleMenu() {
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('show');
-    }
-    btn.addEventListener('click', toggleMenu);
-    overlay.addEventListener('click', toggleMenu);
-
-    // Auto close when link clicked on mobile
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
-          sidebar.classList.remove('open');
-          overlay.classList.remove('show');
-        }
-      });
-    });
-  </script>
+</div>
 </body>
-
 </html>

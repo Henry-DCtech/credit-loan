@@ -1,0 +1,64 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h3>CEO Approval Console</h3>
+        <div>
+            <a href="?filter=ALL"
+                class="btn btn-sm {% if filter == 'ALL' %}btn-dark{% else %}btn-outline-dark{% endif %}">ALL</a>
+            <a href="?filter=PENDING"
+                class="btn btn-sm {% if filter == 'PENDING' %}btn-warning{% else %}btn-outline-warning{% endif %}">PENDING</a>
+            <a href="?filter=APPROVED"
+                class="btn btn-sm {% if filter == 'APPROVED' %}btn-success{% else %}btn-outline-success{% endif %}">APPROVED</a>
+            <a href="?filter=REJECTED"
+                class="btn btn-sm {% if filter == 'REJECTED' %}btn-danger{% else %}btn-outline-danger{% endif %}">REJECTED</a>
+        </div>
+    </div>
+    <p class="text-muted">Only CEO can see this page. Admin/Manager cannot access.</p>
+
+    <table class="table table-bordered table-hover mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Client</th>
+                <th>Branch</th>
+                <th>Amount</th>
+                <th>Risk</th>
+                <th>Current Status</th>
+                <th>CEO Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for loan in loans %}
+            <tr>
+                <td>#{{ loan.id }}</td>
+                <td>{{ loan.full_name }}</td>
+                <td>{{ loan.branch }}</td>
+                <td>₦{{ loan.loan_amount }}</td>
+                <td><span class="badge bg-warning text-dark">{{ loan.risk_score }}%</span></td>
+                <td><span
+                        class="badge {% if loan.status == 'APPROVED' %}bg-success{% elif loan.status == 'REJECTED' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{
+                        loan.status }}</span></td>
+                <td>
+                    <form method="POST" style="display:flex; gap:5px">
+                        {% csrf_token %}
+                        <input type="hidden" name="loan_id" value="{{ loan.id }}">
+                        <select name="status" class="form-select form-select-sm" style="width:130px" required>
+                            <option value="" disabled selected>Choose</option>
+                            <option value="APPROVED">APPROVE</option>
+                            <option value="REJECTED">REJECT</option>
+                            <option value="PENDING">PENDING</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No loans found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

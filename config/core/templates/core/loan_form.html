@@ -1,0 +1,103 @@
+{% extends "core/base.html" %}
+{% block content %}
+<style>
+.wrap{max-width:820px;margin:0 auto}
+.head{
+  background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#334155 100%);
+  color:#fff;padding:26px;border-radius:20px;display:flex;justify-content:space-between;align-items:center;
+  box-shadow:0 18px 40px rgba(15,23,42,.25);margin-bottom:18px;position:relative;overflow:hidden
+}
+.head:before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle at center,rgba(255,255,255,.18),transparent 60%);border-radius:50%}
+.head h2{font-size:18px;letter-spacing:.4px;line-height:1.2}
+.head h2 span{display:block;font-size:10px;letter-spacing:2px;color:#94a3b8;margin-top:6px;font-weight:800}
+.head .price{font-size:11px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;font-weight:700}
+
+.form{
+  background:rgba(255,255,255,.92);backdrop-filter:blur(12px);
+  border:1px solid #e2e8f0;border-radius:20px;padding:22px;
+  box-shadow:0 12px 32px rgba(15,23,42,.06)
+}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.field label{font-size:9.5px;letter-spacing:1.2px;font-weight:800;color:#475569;display:block;margin-bottom:6px;text-transform:uppercase}
+.field input,.field select{
+  width:100%;padding:13px 14px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;
+  font-size:13px;font-weight:600;color:#0f172a;outline:none;transition:.18s
+}
+.field input:focus,.field select:focus{border-color:#0f172a;box-shadow:0 0 0 4px rgba(15,23,42,.08)}
+.hint{font-size:11px;color:#64748b;margin-top:4px}
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:#94a3b8;font-size:10px;letter-spacing:1.5px;font-weight:800}
+.divider:before,.divider:after{content:'';flex:1;height:1px;background:linear-gradient(90deg,#e2e8f0,transparent)}
+
+.client-select{
+  background:linear-gradient(180deg,#f8fafc,#ffffff);border:1.5px dashed #cbd5e1;
+  padding:14px;border-radius:14px;margin-bottom:6px
+}
+
+.actions{display:flex;gap:10px;margin-top:18px}
+.btn{flex:1;padding:14px 16px;border-radius:12px;border:none;font-weight:800;letter-spacing:.3px;cursor:pointer;font-size:13px;transition:.18s}
+.btn-primary{background:#0f172a;color:#fff;box-shadow:0 12px 24px rgba(15,23,42,.22)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 16px 30px rgba(15,23,42,.28)}
+.btn-ghost{background:#f1f5f9;color:#334155;border:1px solid #e2e8f0}
+.risk{margin-top:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:11px;color:#475569}
+.risk b{color:#0f172a}
+</style>
+
+<div class="wrap">
+  <div class="head">
+    <h2>NEW LOAN APPLICATION <span>CEO APPROVAL WORKFLOW • RISK CHECK ENABLED</span></h2>
+    <div class="price">⚡ INSTANT ANALYZER</div>
+  </div>
+
+  <form method="post" class="form">{% csrf_token %}
+    
+    <div class="field client-select">
+      <label>🔗 Link to Existing Client (Premium)</label>
+      <select name="client" id="clientSel">
+        <option value="">— Create New Client Inline —</option>
+        {% for c in clients %}
+        <option value="{{ c.id }}">{{ c.full_name }} • {{ c.phone_number }} • {{ c.branch }}</option>
+        {% endfor %}
+      </select>
+      <div class="hint">Select existing client, or fill new client below — system auto-creates if empty.</div>
+    </div>
+
+    <div class="divider">NEW CLIENT DETAILS</div>
+
+    <div class="grid">
+      <div class="field"><label>Full Name</label><input name="full_name" id="fn" placeholder="e.g. Adebayo Johnson"></div>
+      <div class="field"><label>Phone Number</label><input name="phone" placeholder="080..."></div>
+      <div class="field"><label>Branch</label>
+        <select name="branch"><option>LAGOS</option><option>ABUJA</option><option>PORT HARCOURT</option><option>KANO</option><option>IBADAN</option></select>
+      </div>
+      <div class="field"><label>Age</label><input type="number" name="age" value="30" min="18" max="70"></div>
+    </div>
+
+    <div class="divider">LOAN INTELLIGENCE</div>
+
+    <div class="grid">
+      <div class="field"><label>Loan Amount (₦)</label><input type="number" name="loan_amount" required placeholder="500000"><div class="hint">Max 5x monthly income for low risk</div></div>
+      <div class="field"><label>Monthly Income (₦)</label><input type="number" name="monthly_income" required placeholder="250000"></div>
+      <div class="field"><label>Credit Score (300-900)</label><input type="number" name="credit_score" min="300" max="900" value="650"></div>
+      <div class="field"><label>Purpose</label>
+        <select name="purpose"><option>Business Expansion</option><option>Working Capital</option><option>Education</option><option>Personal</option><option>Emergency</option><option>Asset Purchase</option></select>
+      </div>
+    </div>
+
+    <div class="risk">🧠 <span><b>Auto Risk Check:</b> DTI • Credit • Age • Branch exposure will be calculated by CEO Analyzer after submission.</span></div>
+
+    <div class="actions">
+      <a href="/applications/" class="btn btn-ghost" style="text-align:center;line-height:1.1;padding-top:14px">Cancel</a>
+      <button type="submit" class="btn btn-primary">Submit for CEO Review →</button>
+    </div>
+  </form>
+</div>
+
+<script>
+document.getElementById('clientSel').addEventListener('change', function(){
+  const has = this.value !== '';
+  document.getElementById('fn').required = !has;
+  if(has){ document.getElementById('fn').placeholder = 'Optional (linked)'; } else { document.getElementById('fn').placeholder = 'e.g. Adebayo Johnson'; }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<style>
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 20px
+    }
+
+    .card {
+        border-radius: 16px;
+        padding: 20px;
+        background: #fff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05)
+    }
+
+    .label {
+        font-size: 10px;
+        color: #94a3b8;
+        letter-spacing: 1px;
+        font-weight: 700;
+        margin-top: 12px;
+        display: block
+    }
+
+    .value {
+        font-weight: 600;
+        margin-top: 4px
+    }
+
+    .btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 800;
+        cursor: pointer;
+        margin-top: 10px;
+        text-align: center;
+        text-decoration: none;
+        display: block
+    }
+
+    .risk-low {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700
+    }
+
+    .risk-mid {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700
+    }
+
+    .risk-high {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700
+    }
+
+    @media(max-width:900px) {
+        .grid {
+            grid-template-columns: 1fr
+        }
+    }
+</style>
+
+<a href="/ceo/approvals/" style="text-decoration:none;font-size:13px;color:#64748b">← Back to Queue</a>
+<h2 style="margin:12px 0 18px">Loan Review • #{{ loan.id }}</h2>
+
+<div class="grid">
+    <div class="card">
+        <h3 style="font-size:14px;margin-bottom:10px">CLIENT KYC</h3>
+        <span class="label">FULL NAME</span>
+        <div class="value">{{ loan.client.full_name }}</div>
+        <span class="label">PHONE / BVN</span>
+        <div class="value">{{ loan.client.phone }} • {{ loan.client.bvn|default:"—" }}</div>
+        <span class="label">ADDRESS / BRANCH</span>
+        <div class="value" style="font-weight:400;font-size:13px">{{ loan.client.address|default:"No address" }} • {{
+            loan.client.branch }}</div>
+
+        <hr style="margin:18px 0;border:none;border-top:1px solid #f1f5f9">
+        <h3 style="font-size:14px;margin-bottom:10px">LOAN REQUEST</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+                <span class="label">AMOUNT</span>
+                <div class="value" style="font-size:18px">₦{{ loan.loan_amount }}</div>
+            </div>
+            <div>
+                <span class="label">RISK SCORE (ML)</span>
+                <div class="value" style="margin-top:8px">
+                    {% if loan.risk_score > 70 %}
+                    <span class="risk-high">{{ loan.risk_score }}%</span>
+                    {% elif loan.risk_score > 40 %}
+                    <span class="risk-mid">{{ loan.risk_score }}%</span>
+                    {% else %}
+                    <span class="risk-low">{{ loan.risk_score|default:"--" }}%</span>
+                    {% endif %}
+                </div>
+                <div style="font-size:11px;color:#64748b;margin-top:4px">{{ loan.decision }}</div>
+            </div>
+        </div>
+        <span class="label">PURPOSE</span>
+        <div class="value" style="font-weight:400">{{ loan.purpose|default:"—" }}</div>
+        <span class="label">OFFICER NOTE</span>
+        <div class="value" style="font-weight:400;font-size:13px;color:#475569">{{ loan.officer_notes|default:"No note"
+            }}</div>
+    </div>
+
+    <div>
+        <div class="card" style="background:#0f172a;color:#fff">
+            <small style="color:#fbbf24;letter-spacing:1px">CEO DECISION</small>
+            <h3 style="margin:10px 0 6px">Approve or Reject</h3>
+            <p style="font-size:12px;color:#94a3b8">This action will be logged</p>
+
+            <a href="/ceo/approvals/{{ loan.id }}/approve/" class="btn"
+                style="background:#22c55e;color:#fff;margin-top:18px">✓ APPROVE LOAN</a>
+
+            <form method="POST" action="/ceo/approvals/{{ loan.id }}/reject/">
+                {% csrf_token %}
+                <textarea name="reason" placeholder="Reason for rejection (required if rejecting)"
+                    style="width:100%;padding:10px;border-radius:10px;margin-top:12px;font-size:12px"
+                    rows="3"></textarea>
+                <button type="submit" class="btn" style="background:#ef4444;color:#fff">✗ REJECT LOAN</button>
+            </form>
+        </div>
+
+        <div class="card" style="margin-top:12px;background:#fffbeb;border:1px dashed #fbbf24">
+            <div style="font-size:11px;font-weight:700">ML RECOMMENDATION</div>
+            <div style="font-size:13px;margin-top:6px;line-height:1.4">
+                {% if loan.risk_score > 70 %}
+                High risk - Recommend rejection or extra guarantor
+                {% elif loan.risk_score > 40 %}
+                Medium risk - Review income proof
+                {% else %}
+                Low risk - Safe to approve
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
