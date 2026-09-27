@@ -34,6 +34,7 @@ a{text-decoration:none}
 .topbar p{font-size:11.5px;color:#64748b;margin-top:2px}
 .chip{font-size:10px;padding:5px 10px;border-radius:999px;border:1px solid #e2e8f0;background:#f8fafc;font-weight:700;color:#475569}
 .content{padding:18px 22px}
+
 @media(max-width:900px){.sidebar{transform:translateX(-100%)}.main{margin-left:0}}
 </style>
 </head>
@@ -54,6 +55,8 @@ a{text-decoration:none}
   <a class="nav-item {% if request.path == '/apply/' %}active{% endif %}" href="/apply/"><span class="ico">＋</span> New Loan Application</a>
   <a class="nav-item {% if 'applications' in request.path and 'ceo' not in request.path %}active{% endif %}" href="/applications/"><span class="ico">🗂</span> All Applications</a>
   <a class="nav-item {% if request.path == '/clients/' and 'new' not in request.path %}active{% endif %}" href="/clients/"><span class="ico">👥</span> All Clients</a>
+  <a href="{% url 'field_collection' %}">📒 Field Collection</a>
+  <a href="{% url 'branch_daily_report' %}">📊 Branch Daily Report</a>
 
   {% if profile.role == 'CEO' or profile.role == 'ADMIN' or user.is_superuser %}
   <div class="nav-label">ADMINISTRATION</div>

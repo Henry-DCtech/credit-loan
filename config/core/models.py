@@ -115,3 +115,63 @@ class BranchSaving(models.Model):
     amount = models.FloatField()
     date = models.DateField(auto_now_add=True)
     def __str__(self): return f"Saving {self.amount} - {self.branch}"
+
+
+class FieldCollection(models.Model):
+
+    STATUS_CHOICES = [
+        ('PAID', 'PAID'),
+        ('DEFAULT', 'DEFAULT'),
+        ('PARTIAL', 'PARTIAL'),
+    ]
+    payment_status = models.CharField(max_length=10, choices=[('PAID','PAID'),('DEFAULT','DEFAULT'),('PARTIAL','PARTIAL')])    
+    
+    @property
+    def total_savings_now(self):
+        return (self.last_total_savings or 0) + (self.weekly_savings or 0)
+    
+    loan_stage = models.CharField(max_length=100, default='FIRST', help_text="e.g. FIRST, SECOND, 4th, 5th, 10th")
+    
+    officer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='collections')
+    client_name = models.CharField(max_length=200) # Full Name
+    client_id_code = models.CharField(max_length=50, blank=True) # optional
+    branch = models.CharField(max_length=50, default='LAGOS')
+    date = models.DateField(auto_now_add=True)
+
+    # Savings
+    weekly_savings = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    last_total_savings = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    
+    # Weekly Loan
+    loan_stage = models.CharField(max_length=100, default='FIRST', help_text="e.g. FIRST, SECOND, 4th, 5th, 10th")
+    weekly_repayment_due = models.DecimalField(max_digits=12, decimal_places=2, verbose_name='Loan Repayment per Week', default=0)
+    total_repayment = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    repayment_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    # Monthly Loan
+    monthly_loan_amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name='Monthly Loan Field', default=0)
+    monthly_repayment = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    monthly_loan_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    remarks = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date','-created_at']
+    
+    def __str__(self):
+        return f"{self.client_name} - {self.date}"
+
+# models.py
+class Loan(models.Model):
+    loan_application = models.OneToOneField(LoanApplication, on_delete=models.CASCADE, null=True)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    branch = models.CharField(max_length=100)
+    principal = models.DecimalField(max_digits=12, decimal_places=2)
+    total_due = models.DecimalField(max_digits=12, decimal_places=2)
+    balance = models.DecimalField(max_digits=12, decimal_places=2)
+    weekly_due = models.DecimalField(max_digits=12, decimal_places=2)
+    is_closed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.client} - {self.balance}"

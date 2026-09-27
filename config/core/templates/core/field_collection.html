@@ -1,0 +1,159 @@
+{% extends "core/base.html" %}
+{% block content %}
+<style>
+.fc-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}
+@media(max-width:980px){.fc-grid{grid-template-columns:1fr}}
+.card{border-radius:22px;background:#fff;border:1px solid #eef2f7;padding:24px;box-shadow:0 10px 40px rgba(15,23,42,.05)}
+.label{font-size:10px;font-weight:800;letter-spacing:1.2px;color:#94a3b8;margin:14px 0 6px;display:block}
+.input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid #e2e8f0;background:#f8fafc;font-weight:600}
+.input:focus{background:#fff;border-color:#0f172a;outline:none}
+.section-title{font-size:11px;font-weight:800;letter-spacing:1.5px;margin:18px 0 10px;padding:8px 12px;border-radius:99px;display:inline-block}
+.status-PAID{background:#dcfce7;color:#166534;padding:4px 8px;border-radius:99px;font-size:9px;font-weight:900}
+.status-PARTIAL{background:#fef9c3;color:#854d0e;padding:4px 8px;border-radius:99px;font-size:9px;font-weight:900}
+.status-DEFAULT{background:#fee2e2;color:#991b1b;padding:4px 8px;border-radius:99px;font-size:9px;font-weight:900}
+</style>
+
+<div style="max-width:1350px;margin:0 auto">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+    <h2 style="font-weight:900;letter-spacing:-.5px">Standard Field Collection • {{ selected_date }}</h2>
+    <span style="background:#0f172a;color:#fff;padding:6px 12px;border-radius:99px;font-size:10px;font-weight:800">{{ profile.branch }} • {{ request.user.username }}</span>
+  </div>
+
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+    <form id="dateFilter" method="GET" style="display:flex;gap:8px">
+      <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" class="input" style="padding:8px 12px;width:160px">
+      <button class="input" style="width:auto;background:#0f172a;color:#fff;cursor:pointer;font-weight:800">FILTER</button>
+    </form>
+    <a href="{% url 'field_collection_print' %}?date={{ selected_date|date:'Y-m-d' }}" target="_blank" style="background:#fff;border:1.5px solid #e2e8f0;padding:10px 16px;border-radius:10px;font-weight:800;text-decoration:none;color:#0f172a">📄 VIEW</a>
+    <a href="{% url 'field_collection_print' %}?date={{ selected_date|date:'Y-m-d' }}&print=1" target="_blank" style="background:#0f172a;color:#fff;padding:10px 16px;border-radius:10px;font-weight:800;text-decoration:none">🖨️ PRINT</a>
+    {% if profile.role == 'CEO' or profile.role == 'ADMIN' or request.user.is_superuser %}
+    <!-- <a href="/report/branch-daily/?date={{ selected_date|date:'Y-m-d' }}" style="background:#16a34a;color:#fff;padding:10px 16px;border-radius:10px;font-weight:800;text-decoration:none">📊 BRANCH REPORT</a> -->
+    {% endif %}
+  </div>
+
+<div class="fc-grid">
+  <div class="card">
+    <form method="POST">
+      {% csrf_token %}
+      <label class="label">Full Name (Client) *</label>
+      <input class="input" name="client_name" required placeholder="e.g. Mrs. Bola Ade" list="clientList">
+      <datalist id="clientList">
+        {% for c in clients %}<option value="{{ c.full_name }}">{% endfor %}
+      </datalist>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label class="label">Branch *</label>
+          <select class="input" name="branch" required>
+            <option value="{{ profile.branch }}" selected>{{ profile.branch }} (My Branch)</option>
+            <option value="LAGOS">LAGOS</option>
+            <option value="ABUJA">ABUJA</option>
+            <option value="PH">PH</option>
+            <option value="KANO">KANO</option>
+            <option value="IBADAN">IBADAN</option>
+            <option value="ENUGU">ENUGU</option>
+          </select>
+        </div>
+        <div>
+          <label class="label">Loan Stage *</label>
+          <input class="input" name="loan_stage" list="stageOptions" placeholder="e.g. 4th Loan" required>
+          <datalist id="stageOptions">
+            <option value="FIRST"><option value="SECOND"><option value="THIRD"><option value="4th"><option value="5th"><option value="6th"><option value="7th"><option value="8th"><option value="9th"><option value="10th"><option value="SETTLED"><option value="DEFAULT">
+          </datalist>
+        </div>
+      </div>
+
+      <span class="section-title" style="background:#dcfce7;color:#166534">WEEKLY SAVINGS</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="label">Weekly Savings (₦)</label><input class="input" type="number" step="0.01" name="weekly_savings" id="ws" value="0"></div>
+        <div><label class="label">Last Total Savings (₦)</label><input class="input" type="number" step="0.01" name="last_total_savings" id="lts" value="0"></div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;font-weight:800;color:#16a34a">New Total: ₦<span id="totalSav">0</span></div>
+
+      <span class="section-title" style="background:#fef9c3;color:#854d0e">WEEKLY LOAN REPAYMENT - AUTO DEDUCT</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div><label class="label">Repay / Week (Due)</label><input class="input" type="number" step="0.01" name="weekly_repayment_due" id="due" value="0"></div>
+        <div><label class="label">Total Paid Today</label><input class="input" type="number" step="0.01" name="total_repayment" id="paid" value="0"></div>
+        <div><label class="label">Balance (Auto)</label><input class="input" type="number" step="0.01" name="repayment_balance" id="bal" value="0" readonly style="background:#fefce8;font-weight:900"></div>
+      </div>
+      <div style="font-size:10px;color:#64748b;margin-top:6px">Balance = Due - Paid • 0 means PAID</div>
+
+      <span class="section-title" style="background:#e0f2fe;color:#0c4a6e">MONTHLY LOAN</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div><label class="label">Loan Amount</label><input class="input" type="number" step="0.01" name="monthly_loan_amount" value="0"></div>
+        <div><label class="label">Monthly Repay</label><input class="input" type="number" step="0.01" name="monthly_repayment" id="mPaid" value="0"></div>
+        <div><label class="label">Balance</label><input class="input" type="number" step="0.01" name="monthly_loan_balance" id="mBal" value="0"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+        <div>
+          <label class="label">PAYMENT STATUS *</label>
+          <select class="input" name="payment_status" id="pStatus" required style="font-weight:900">
+            <option value="">-- Choose --</option>
+            <option value="PAID">✅ PAID</option>
+            <option value="PARTIAL">⚠️ PARTIAL</option>
+            <option value="DEFAULT">❌ DEFAULT</option>
+          </select>
+        </div>
+        <div>
+          <label class="label">Remarks</label>
+          <input class="input" name="remarks" placeholder="Client not around...">
+        </div>
+      </div>
+
+      <button style="width:100%;margin-top:18px;background:#0f172a;color:#fff;padding:14px;border-radius:14px;font-weight:800;border:none;cursor:pointer">💾 SAVE ENTRY</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h4 style="font-weight:800;font-size:13px;letter-spacing:1px">COLLECTIONS • {{ collections|length }}</h4>
+    <div style="margin-top:12px;max-height:750px;overflow:auto">
+      {% for c in collections %}
+      <div style="border:1px solid {% if c.payment_status == 'DEFAULT' %}#fecaca{% elif c.payment_status == 'PARTIAL' %}#fde68a{% else %}#e2e8f0{% endif %};border-radius:14px;padding:12px;margin-bottom:10px;background:{% if c.payment_status == 'DEFAULT' %}#fff1f2{% elif c.payment_status == 'PARTIAL' %}#fefce8{% else %}#fff{% endif %}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <b style="font-size:13px">{{ c.client_name }}</b>
+          <span class="status-{{ c.payment_status }}">{{ c.payment_status }}</span>
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-top:4px">{{ c.date }} • {{ c.branch }} • {{ c.loan_stage }}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;font-size:11px">
+          <div style="background:#f0fdf4;padding:8px;border-radius:10px">Sav ₦{{ c.weekly_savings }} / Tot ₦{{ c.last_total_savings|add:c.weekly_savings }}</div>
+          <div style="background:#fefce8;padding:8px;border-radius:10px">Repay ₦{{ c.total_repayment }} Bal ₦{{ c.repayment_balance }}</div>
+        </div>
+        {% if c.remarks %}<div style="font-size:10px;margin-top:6px;color:#475569">💬 {{ c.remarks }}</div>{% endif %}
+      </div>
+      {% empty %}<div style="color:#94a3b8;text-align:center;padding:40px">No collections for {{ selected_date }}</div>{% endfor %}
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+    function calcSav(){ 
+        let ws = parseFloat(document.getElementById('ws').value)||0;
+        let lts = parseFloat(document.getElementById('lts').value)||0;
+        document.getElementById('totalSav').innerText = (ws+lts).toLocaleString();
+    }
+    function calcBal(){
+        let due = parseFloat(document.getElementById('due').value)||0;
+        let paid = parseFloat(document.getElementById('paid').value)||0;
+        let bal = due - paid;
+        if(bal < 0) bal = 0;
+        document.getElementById('bal').value = bal;
+        let st = document.getElementById('pStatus');
+        if(paid >= due && due > 0) st.value = 'PAID';
+        else if(paid > 0 && paid < due) st.value = 'PARTIAL';
+        else if(paid == 0 && due > 0) st.value = 'DEFAULT';
+    }
+    document.getElementById('ws').addEventListener('input',calcSav);
+    document.getElementById('lts').addEventListener('input',calcSav);
+    document.getElementById('due').addEventListener('input',calcBal);
+    document.getElementById('paid').addEventListener('input',calcBal);
+    calcSav(); calcBal();
+
+    document.getElementById('dateFilter').addEventListener('submit', function(e){
+        e.preventDefault();
+        let d = this.querySelector('input[name=date]').value;
+        window.location.replace("?date=" + d);
+    });
+</script>
+{% endblock %}

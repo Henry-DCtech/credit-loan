@@ -1,0 +1,58 @@
+{% extends "core/base.html" %}
+{% block content %}
+<style>
+.card{border-radius:22px;background:#fff;border:1px solid #eef2f7;padding:24px;box-shadow:0 10px 40px rgba(15,23,42,.05)}
+.badge{padding:4px 10px;border-radius:99px;font-size:10px;font-weight:800}
+</style>
+
+<div style="max-width:1350px;margin:0 auto">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <h2 style="font-weight:900">📊 Branch Daily Report • {{ selected_date }}</h2>
+    <span style="background:#0f172a;color:#fff;padding:6px 12px;border-radius:99px;font-size:10px;font-weight:800">{{ selected_branch }} • CEO VIEW</span>
+  </div>
+  <form id="filterForm" method="GET" style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;background:#fff;padding:14px;border-radius:16px;border:1px solid #e2e8f0">
+      <input id="dateInput" type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" style="padding:10px 12px;border-radius:10px;border:1.5px solid #e2e8f0;font-weight:700">
+      <select id="branchInput" name="branch" style="padding:10px 12px;border-radius:10px;border:1.5px solid #e2e8f0;font-weight:800;min-width:180px">
+          <option value="ALL" {% if selected_branch == 'ALL' %}selected{% endif %}>ALL BRANCHES</option>
+          {% for b in all_branches %}
+          <option value="{{ b }}" {% if selected_branch == b %}selected{% endif %}>{{ b }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" style="background:#0f172a;color:#fff;padding:10px 18px;border-radius:10px;font-weight:800;border:none;cursor:pointer">FILTER</button>
+        <a href="{% url 'field_collection_print' %}?date={{ selected_date|date:'Y-m-d' }}" target="_blank" style="background:#fff;border:1.5px solid #e2e8f0;padding:10px 16px;border-radius:10px;font-weight:800;text-decoration:none;color:#0f172a">📄 VIEW</a>
+        <a href="{% url 'field_collection_print' %}?date={{ selected_date|date:'Y-m-d' }}&print=1" target="_blank" style="background:#0f172a;color:#fff;padding:10px 16px;border-radius:10px;font-weight:800;text-decoration:none">🖨️ PRINT</a>
+    </form>
+    
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px">
+        <div class="card" style="padding:16px"><div style="font-size:10px;font-weight:800;color:#94a3b8">CLIENTS</div><b style="font-size:22px">{{ overall.total_clients|default:0 }}</b></div>
+        <div class="card" style="padding:16px"><div style="font-size:10px;font-weight:800;color:#94a3b8">EXPECTED</div><b style="font-size:22px">₦{{ overall.total_expected|default:0|floatformat:0 }}</b></div>
+        <div class="card" style="padding:16px"><div style="font-size:10px;font-weight:800;color:#94a3b8">COLLECTED</div><b style="font-size:22px;color:#16a34a">₦{{ overall.total_repayment|default:0|floatformat:0 }}</b></div>
+        <div class="card" style="padding:16px"><div style="font-size:10px;font-weight:800;color:#94a3b8">BALANCE</div><b style="font-size:22px;color:#dc2626">₦{{ overall.total_balance|default:0|floatformat:0 }}</b></div>
+    </div>
+    
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
+  {% for b in branches %}
+    <div class="card" style="border-left:6px solid {% if b.performance >= 90 %}#16a34a{% elif b.performance >= 70 %}#f59e0b{% else %}#dc2626{% endif %}">
+      <div style="display:flex;justify-content:space-between"><h3 style="font-weight:900">{{ b.branch }}</h3><span class="badge" style="background:{% if b.performance >= 90 %}#dcfce7{% elif b.performance >= 70 %}#fef9c3{% else %}#fee2e2{% endif %}">{{ b.performance }}%</span></div>
+      <div style="margin-top:10px;font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>Clients: <b>{{ b.total_clients }}</b></div><div>Eff: <b>{{ b.effectiveness }}%</b></div>
+        <div style="color:#16a34a">PAID: <b>{{ b.paid }}</b></div><div style="color:#ca8a04">PARTIAL: <b>{{ b.partial }}</b></div>
+        <div style="color:#dc2626">DEFAULT: <b>{{ b.defaults }}</b></div><div>Collected: <b>₦{{ b.total_repayment|floatformat:0 }}</b></div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="card" style="text-align:center;color:#94a3b8;padding:40px">No data for {{ selected_date }}</div>
+  {% endfor %}
+  </div>
+</div>
+
+<script>
+// Daily auto fresh: no history stack, always lands on today by default from view
+document.getElementById('filterForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const date = document.getElementById('dateInput').value;
+  const branch = document.getElementById('branchInput').value;
+  window.location.replace("{% url 'branch_daily_report' %}?date=" + date + "&branch=" + branch);
+});
+</script>
+{% endblock %}

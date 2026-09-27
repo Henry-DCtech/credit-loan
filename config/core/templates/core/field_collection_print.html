@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Daily Collection - {{ selected_date }}</title>
+<style>
+body{font-family:system-ui,Arial;padding:20px;font-size:12px;color:#000}
+table{width:100%;border-collapse:collapse;margin-top:16px}
+th,td{border:1px solid #000;padding:7px 8px;text-align:left;font-size:11px}
+th{background:#f1f5f9;font-size:10px;text-transform:uppercase}
+.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:12px}
+@media print{ .no-print{display:none !important} }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h2 style="margin:0">DAILY FIELD COLLECTION SHEET</h2>
+    <div style="margin-top:6px">Date: <b>{{ selected_date }}</b> | Branch: <b>{{ profile.branch }}</b> | Officer: <b>{{ request.user.username }}</b> | Total Clients: <b>{{ collections|length }}</b></div>
+  </div>
+  <div class="no-print">
+    <button onclick="window.print()" style="padding:10px 20px;background:#000;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:800">🖨️ PRINT NOW</button>
+  </div>
+</div>
+
+<table>
+<thead>
+<tr>
+  <th>#</th><th>Client Name</th><th>Loan Stage</th><th>Wk Savings</th><th>Last Total</th><th>New Total</th><th>Wk Due</th><th>Tot Repay</th><th>Balance</th><th>Monthly Loan</th><th>Mth Repay</th><th>Mth Bal</th><th>Remarks</th>
+</tr>
+</thead>
+<tbody>
+{% for c in collections %}
+<tr>
+  <td>{{ forloop.counter }}</td>
+  <td><b>{{ c.client_name }}</b></td>
+  <td>{{ c.loan_stage }}</td>
+  <td>{{ c.weekly_savings }}</td>
+  <td>{{ c.last_total_savings }}</td>
+  <td>{{ c.total_savings_now }}</td>
+  <td>{{ c.weekly_repayment_due }}</td>
+  <td>{{ c.total_repayment }}</td>
+  <td>{{ c.repayment_balance }}</td>
+  <td>{{ c.monthly_loan_amount }}</td>
+  <td>{{ c.monthly_repayment }}</td>
+  <td>{{ c.monthly_loan_balance }}</td>
+  <td style="font-size:10px">{{ c.remarks }}</td>
+</tr>
+{% empty %}
+<tr><td colspan="13" style="text-align:center;padding:20px">No collections for {{ selected_date }}</td></tr>
+{% endfor %}
+</tbody>
+</table>
+
+<div style="margin-top:40px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:50px;text-align:center;font-size:11px">
+  <div>__________________<br><br>Field Officer</div>
+  <div>__________________<br><br>Branch Manager</div>
+  <div>__________________<br><br>CEO / Audit</div>
+</div>
+
+<script>
+if(new URLSearchParams(location.search).get('print')=='1'){
+  window.onload = () => setTimeout(()=>window.print(), 500);
+}
+</script>
+</body>
+</html>

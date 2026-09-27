@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import json
 
 from .models import LoanApplication, Profile, Client, Repayment, LoanDefault, BranchSaving
@@ -19,14 +19,9 @@ except ImportError:
 
 # ---------- HELPERS ----------
 def get_profile(user):
-    try:
-        # try profile related_name
-        if hasattr(user, 'profile'):
-            return user.profile
-    except:
-        pass
-    profile, _ = Profile.objects.get_or_create(user=user, defaults={'role':'OFFICER','branch':'LAGOS'})
-    return profile
+    if not user or not getattr(user, 'is_authenticated', False):
+        return None
+    return Profile.objects.filter(user=user).first()
 
 def is_ceo(user):
     if not user.is_authenticated:
@@ -92,35 +87,55 @@ def logout_view(request):
     return redirect('landing')
 
 def register_view(request):
+    # 1. Must be logged in first
+    if not request.user.is_authenticated:
+        messages.error(request, "Please login first")
+        return redirect('login')
+
+    # 2. Now safe to get profile
     my_profile = get_profile(request.user)
+    if not my_profile:
+        messages.error(request, "Profile not found")
+        return redirect('login')
+
+    # 3. Only CEO/ADMIN/Superuser can register officers
     if my_profile.role not in ['CEO', 'ADMIN'] and not request.user.is_superuser:
         messages.error(request, "Only CEO/ADMIN can register officers")
         return redirect('dashboard')
 
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        email = request.POST.get('email','')
+        username = request.POST.get('username','').strip()
+        password = request.POST.get('password','').strip()
+        email = request.POST.get('email','').strip()
         role = request.POST.get('role','OFFICER')
         branch = request.POST.get('branch','LAGOS')
 
-        if role == 'CEO' and my_profile.role != 'CEO' and not request.user.is_superuser:
-            role = 'OFFICER'
-
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username exists")
+        if not username or not password:
+            messages.error(request, "Username and password required")
         else:
-            u = User.objects.create_user(username, email, password)
-            prof, _ = Profile.objects.get_or_create(user=u)
-            prof.role = role
-            prof.branch = branch
-            prof.save()
-            messages.success(request, f"{role} {username} created")
-            return redirect('register')
+            # Only CEO can create another CEO
+            if role == 'CEO' and my_profile.role != 'CEO' and not request.user.is_superuser:
+                role = 'OFFICER'
+
+            if User.objects.filter(username=username).exists():
+                messages.error(request, "Username exists")
+            else:
+                u = User.objects.create_user(username, email or f"{username}@local.com", password)
+                prof, _ = Profile.objects.get_or_create(user=u)
+                prof.role = role
+                prof.branch = branch
+                prof.save()
+                messages.success(request, f"{role} {username} created")
+                return redirect('register')
 
     all_profiles = Profile.objects.select_related('user').all().order_by('-id')
-    users = User.objects.select_related('profile').all().order_by('-date_joined')
-    return render(request, 'core/register.html', {'profile': my_profile, 'all_profiles': all_profiles, 'users': users})
+    users = User.objects.all().order_by('-date_joined')
+    return render(request, 'core/register.html', {
+        'profile': my_profile, 
+        'all_profiles': all_profiles, 
+        'users': users
+    })
+
 
 @login_required
 @role_required(['CEO','ADMIN'])
@@ -396,16 +411,22 @@ def ceo_analyzer(request, loan_id=None):
 def ceo_approve(request, loan_id):
     LoanApplication.objects.filter(pk=loan_id).update(status='APPROVED')
     return redirect('ceo_analyzer')
+
+
 @login_required
 @role_required(['CEO'])
 def ceo_review(request, loan_id):
     LoanApplication.objects.filter(pk=loan_id).update(status='REVIEW')
     return redirect('ceo_analyzer')
+
+
 @login_required
 @role_required(['CEO'])
 def ceo_pending(request, loan_id):
     LoanApplication.objects.filter(pk=loan_id).update(status='PENDING')
     return redirect('ceo_analyzer')
+
+
 @login_required
 @role_required(['CEO'])
 def ceo_reject(request, loan_id):
@@ -423,16 +444,53 @@ def ceo_approval_list(request):
     profile = get_profile(request.user)
     return render(request, 'core/ceo_approval_list.html', {'loans': pending, 'profile': profile})
 
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.utils import timezone
+from django.db import transaction
+from decimal import Decimal
+
+
 @login_required
 @role_required(['CEO'])
+@transaction.atomic
 def disburse_loan(request, pk):
-    loan = get_object_or_404(LoanApplication, pk=pk)
-    if not getattr(loan, 'is_disbursed', False):
-        loan.is_disbursed = True
-        loan.disbursed_at = timezone.now()
-        loan.status = 'APPROVED'
-        loan.save()
-        messages.success(request, f"Disbursed N{loan.loan_amount}")
+    app = get_object_or_404(LoanApplication, pk=pk)
+
+    # Prevent double disbursement
+    if getattr(app, 'is_disbursed', False):
+        messages.warning(request, f"Loan for {app.client} already disbursed")
+        return redirect('applications')
+
+    # 1. Calculate
+    principal = Decimal(app.loan_amount)
+    interest = Decimal(getattr(app, 'interest_amount', 0) or 0)
+    # If you don't have interest_amount field, use: interest = principal * Decimal('0.2') for 20%
+    total_due = principal + interest
+    
+    # Weekly due - adjust if you have tenure
+    tenure_weeks = getattr(app, 'tenure_weeks', 24) or 24
+    weekly_due = total_due / Decimal(tenure_weeks)
+
+    # 2. Mark application as disbursed
+    app.is_disbursed = True
+    app.disbursed_at = timezone.now()
+    app.status = 'DISBURSED' # better than APPROVED
+    app.save()
+
+    # 3. Create actual Loan ledger for repayment deduction
+    loan = Loan.objects.create(
+        client=app.client,  # from application
+        branch=getattr(app, 'branch', None) or getattr(app.client, 'branch', 'HEAD OFFICE'),
+        principal=principal,
+        total_due=total_due,
+        balance=total_due,  # full at start
+        weekly_due=weekly_due,
+        loan_application=app  # link if you have FK
+    )
+
+    messages.success(request, f"Disbursed ₦{principal} to {app.client}. Weekly: ₦{weekly_due:.0f}")
     return redirect('applications')
 
 @login_required
@@ -496,3 +554,189 @@ clients_list = client_list
 new_client = new_client_view
 ceo_approvals = ceo_approval_list
 officer_register = register_view
+
+
+from .models import FieldCollection
+from django.contrib.auth.decorators import login_required
+from datetime import date as dt_date
+from django.contrib import messages
+from django.shortcuts import redirect, render
+
+@login_required
+def field_collection_view(request):
+    # 1. Profile & permission FIRST
+    my_profile = get_profile(request.user)
+    if not my_profile:
+        messages.error(request, "Profile not found")
+        return redirect('login')
+    
+    if my_profile.role not in ['OFFICER','ADMIN','CEO'] and not request.user.is_superuser:
+        messages.error(request, "Officers only")
+        return redirect('dashboard')
+
+    # 2. Date filter
+    selected_date_str = request.GET.get('date')
+    if selected_date_str:
+        try:
+            selected_date_obj = dt_date.fromisoformat(selected_date_str)
+        except:
+            selected_date_obj = dt_date.today()
+    else:
+        selected_date_obj = dt_date.today()
+
+    # 3. POST save
+    if request.method == 'POST':
+        FieldCollection.objects.create(
+            officer=request.user,
+            client_name=request.POST.get('client_name'),
+            branch=request.POST.get('branch', my_profile.branch),
+            weekly_savings=request.POST.get('weekly_savings') or 0,
+            last_total_savings=request.POST.get('last_total_savings') or 0,
+            loan_stage=request.POST.get('loan_stage') or 'FIRST',
+            weekly_repayment_due=request.POST.get('weekly_repayment_due') or 0,
+            total_repayment=request.POST.get('total_repayment') or 0,
+            repayment_balance=request.POST.get('repayment_balance') or 0,
+            monthly_loan_amount=request.POST.get('monthly_loan_amount') or 0,
+            monthly_repayment=request.POST.get('monthly_repayment') or 0,
+            monthly_loan_balance=request.POST.get('monthly_loan_balance') or 0,
+            remarks=request.POST.get('remarks',''),
+            date=selected_date_obj,  # save with selected date
+        )
+        messages.success(request, "Field collection saved")
+        return redirect(f"{request.path}?date={selected_date_obj.isoformat()}")
+
+    # 4. GET list - filtered by date
+    if my_profile.role in ['CEO','ADMIN'] or request.user.is_superuser:
+        collections = FieldCollection.objects.filter(date=selected_date_obj).select_related('officer').order_by('-created_at')
+    else:
+        collections = FieldCollection.objects.filter(officer=request.user, date=selected_date_obj).order_by('-created_at')
+
+    total_savings = sum([c.weekly_savings for c in collections])
+    today_count = collections.count()
+
+    return render(request, 'core/field_collection.html', {
+        'profile': my_profile,
+        'collections': collections,
+        'total_savings': total_savings,
+        'today_count': today_count,
+        'selected_date': selected_date_obj,
+    })
+
+@login_required
+def field_collection_print(request):
+    my_profile = get_profile(request.user)
+    selected_date_str = request.GET.get('date')
+    try:
+        d = dt_date.fromisoformat(selected_date_str) if selected_date_str else dt_date.today()
+    except:
+        d = dt_date.today()
+
+    if my_profile.role in ['CEO','ADMIN'] or request.user.is_superuser:
+        collections = FieldCollection.objects.filter(date=d).order_by('client_name')
+    else:
+        collections = FieldCollection.objects.filter(officer=request.user, date=d).order_by('client_name')
+
+    return render(request, 'core/field_collection_print.html', {
+        'collections': collections,
+        'selected_date': d,
+        'profile': my_profile
+    })
+
+
+from django.db.models import Sum, Count
+from datetime import date as dt_date
+from django.shortcuts import redirect, render
+from django.contrib import messages
+
+@login_required
+def branch_daily_report(request):
+    today = dt_date.today()
+    my_profile = get_profile(request.user)
+
+    if 'clear' in request.GET:
+        return redirect('branch_daily_report')
+
+    if my_profile.role not in ['CEO','ADMIN'] and not request.user.is_superuser:
+        messages.error(request, "CEO/Admin only")
+        return redirect('dashboard')
+
+    selected_branch = request.GET.get('branch', 'ALL')
+    date_str = request.GET.get('date')
+    
+    try:
+        selected_date = dt_date.fromisoformat(date_str) if date_str else today
+    except:
+        selected_date = today
+
+    base_qs = FieldCollection.objects.filter(date=selected_date)
+    
+    all_branches = FieldCollection.objects.filter(date=selected_date).values_list('branch', flat=True).distinct()
+    if not all_branches:
+        all_branches = FieldCollection.objects.values_list('branch', flat=True).distinct()
+
+    if selected_branch and selected_branch != 'ALL':
+        base_qs = base_qs.filter(branch=selected_branch)
+
+    branch_names = base_qs.values_list('branch', flat=True).distinct()
+    
+    branches = []
+    for branch in branch_names:
+        qs = base_qs.filter(branch=branch)
+        agg = qs.aggregate(
+            total_clients=Count('id'),
+            total_savings=Sum('weekly_savings'),
+            total_last_savings=Sum('last_total_savings'),
+            total_repayment=Sum('total_repayment'),
+            total_expected=Sum('weekly_repayment_due'),
+            total_balance=Sum('repayment_balance'),
+            total_monthly_repay=Sum('monthly_repayment'),
+            total_monthly_bal=Sum('monthly_loan_balance'),
+        )
+        paid = qs.filter(payment_status='PAID').count()
+        partial = qs.filter(payment_status='PARTIAL').count()
+        defaults = qs.filter(payment_status='DEFAULT').count()
+
+        exp = agg['total_expected'] or 0
+        actual = agg['total_repayment'] or 0
+        total_clients = agg['total_clients'] or 0
+
+        branches.append({
+            'branch': branch,
+            'total_clients': total_clients,
+            'total_savings': agg['total_savings'] or 0,
+            'total_last_savings': agg['total_last_savings'] or 0,
+            'total_new_savings': (agg['total_savings'] or 0) + (agg['total_last_savings'] or 0),
+            'total_repayment': actual,
+            'total_expected': exp,
+            'total_balance': agg['total_balance'] or 0,
+            'total_monthly_repay': agg['total_monthly_repay'] or 0,
+            'total_monthly_bal': agg['total_monthly_bal'] or 0,
+            'paid': paid,
+            'partial': partial,
+            'defaults': defaults,
+            'full_payments': paid,
+            'effectiveness': round((paid / total_clients * 100) if total_clients else 0, 1),
+            'performance': round((actual / exp * 100) if exp > 0 else (paid / total_clients * 100 if total_clients else 0), 1),
+            'default_rate': round((defaults / total_clients * 100) if total_clients else 0, 1),
+        })
+
+    overall = base_qs.aggregate(
+        total_clients=Count('id'),
+        total_savings=Sum('weekly_savings'),
+        total_repayment=Sum('total_repayment'),
+        total_expected=Sum('weekly_repayment_due'),
+        total_balance=Sum('repayment_balance'),
+    )
+    overall['paid_count'] = base_qs.filter(payment_status='PAID').count()
+    overall['partial_count'] = base_qs.filter(payment_status='PARTIAL').count()
+    overall['default_count'] = base_qs.filter(payment_status='DEFAULT').count()
+
+    return render(request, 'core/branch_daily_report.html', {
+        'profile': my_profile,
+        'branches': sorted(branches, key=lambda x: x['performance'], reverse=True),
+        'selected_date': selected_date,
+        'selected_branch': selected_branch,
+        'all_branches': all_branches,
+        'overall': overall,
+        'collections': base_qs.select_related('officer')[:300]
+    })
