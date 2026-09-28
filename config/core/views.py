@@ -746,3 +746,312 @@ def privacy_policy(request):
 
 def terms_conditions(request):
     return render(request, 'core/legal/terms.html')
+
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import License
+from datetime import timedelta
+from django.utils import timezone
+
+def license_view(request):
+    license = License.objects.first()
+
+    if request.method == "POST":
+        key = request.POST.get("license_key")
+        org = request.POST.get("org_name")
+        
+        # Simple validation - starts with CRP-
+        if not key.startswith("CRP-"):
+            messages.error(request, "Invalid license format. Must start with CRP-")
+        else:
+            License.objects.all().delete() # only 1 license
+            License.objects.create(
+                license_key=key,
+                org_name=org,
+                expiry_date=timezone.now().date() + timedelta(days=365),
+                is_active=True
+            )
+            messages.success(request, "License Activated Successfully!")
+            return redirect("license")
+
+    return render(request, "core/license.html", {"license": license})
+
+
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
+
+def send_license_email(license_obj, org_email):
+    subject = f"ZIONCARE License Activated - {license_obj.org_name}"
+    message = f"""
+Hello {license_obj.org_name},
+
+Your ZIONCARE license has been successfully activated.
+
+License Details:
+
+Organization: {license_obj.org_name}
+License Key: {license_obj.license_key}
+Status: {license_obj.status}
+Expiry Date: {license_obj.expiry_date}
+Duration: {license_obj.expiry_date|timeuntil} remaining
+Seats: Unlimited
+
+Your platform is now secured with 256-bit validation.
+
+Thank you for choosing ZIONCARE.
+
+— ZIONCARE Developer Team
+Secure • Live • 2026
+    """
+    
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [org_email],
+        fail_silently=False,
+    )
+
+# Inside your activate view, after license.save():
+# send_license_email(license, request.POST.get('org_email'))
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta  # pip install python-dateutil
+from .models import License
+
+def active_license(request):
+    if request.method == 'POST':
+        license_key = request.POST.get('license_key', '').strip().upper()
+        org_name = request.POST.get('org_name', '').strip()
+        org_email = request.POST.get('org_email', '').strip()
+
+        if not license_key or not org_name:
+            messages.error(request, 'License Key and Organization are required.')
+            return redirect('license')
+
+        try:
+            lic = License.objects.get(license_key=license_key)
+
+            # Activate / Renew
+            lic.org_name = org_name
+            lic.is_active = True
+            lic.expiry_date = timezone.now().date() + timedelta(days=365)
+            lic.save()
+
+            # Auto email
+            if org_email:
+                try:
+                    send_mail(
+                        subject=f'ZIONCARE License Activated - {org_name}',
+                        message=f"""Hello {org_name},
+
+Your ZIONCARE license is now ACTIVE.
+
+License Key: {lic.license_key}
+Organization: {lic.org_name}
+Status: {lic.status}
+Expiry Date: {lic.expiry_date}
+Time Left: 11 months, 4 weeks
+
+Seats: Unlimited
+Secured by 256-bit ZIONCARE validation.
+
+Thank you for choosing ZIONCARE.
+""",
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[org_email],
+                        fail_silently=True
+                    )
+                except Exception as e:
+                    print(f"Email failed: {e}")
+
+            messages.success(request, f'✅ License activated for {org_name} - {lic.expiry_date}')
+            return redirect('license')
+
+        except License.DoesNotExist:
+            messages.error(request, 'Invalid License Key.')
+            return redirect('license')
+
+    # GET - countdown logic
+    latest_license = License.objects.filter(is_active=True).order_by('-created_at').first()
+
+    countdown_text = None
+    expiry_str = None
+    status_color = "inactive"
+
+    if latest_license:
+        today = timezone.now().date()
+        expiry = latest_license.expiry_date
+        expiry_str = expiry.strftime("%d %B, %Y")
+
+        if latest_license.status == "Active":
+            delta = relativedelta(expiry, today)
+            months = delta.months + (delta.years * 12)
+            weeks = delta.days // 7
+            
+            if months > 0 and weeks > 0:
+                countdown_text = f"{months} months, {weeks} weeks left"
+            elif months > 0:
+                countdown_text = f"{months} months left"
+            elif weeks > 0:
+                countdown_text = f"{weeks} weeks left"
+            else:
+                countdown_text = f"{delta.days} days left"
+            status_color = "active"
+        elif latest_license.status == "Expired":
+            status_color = "expired"
+            countdown_text = "Expired"
+
+    return render(request, 'license.html', {
+        'latest_license': latest_license,
+        'countdown_text': countdown_text,
+        'expiry_str': expiry_str,
+        'status_color': status_color
+    })
+
+# ================= LICENSE - CLEAN FINAL =================
+from.models import License
+from dateutil.relativedelta import relativedelta
+
+def license_page(request):
+    """Page to activate license - redirects to logs after success"""
+    if request.method == "POST":
+        key = request.POST.get("license_key","").strip().upper()
+        org = request.POST.get("org_name","").strip()
+        email = request.POST.get("org_email","").strip()
+
+        if not key.startswith("CRP-"):
+            messages.error(request, "Invalid license format. Must start with CRP-")
+            return redirect('license')
+
+        try:
+            lic = License.objects.get(license_key=key)
+            lic.org_name = org
+            if hasattr(lic, 'org_email'):
+                lic.org_email = email
+            lic.is_active = True
+            lic.expiry_date = timezone.now().date() + timedelta(days=365)
+            lic.save()
+
+            # Email
+            if email:
+                try:
+                    send_mail(
+                        subject=f'ZIONCARE License Activated - {org}',
+                        message=f"Hello {org},\n\nLicense {lic.license_key} Active.\nExpires: {lic.expiry_date}\n\nZIONCARE Team",
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[email],
+                        fail_silently=True
+                    )
+                except:
+                    pass
+
+            messages.success(request, f"License activated for {org}")
+            return redirect('license_logs') # FIXED: goes to log page
+
+        except License.DoesNotExist:
+            messages.error(request, "Invalid License Key")
+            return redirect('license_page')
+
+    # GET - show latest for countdown if you still use license.html countdown
+    latest_license = License.objects.filter(is_active=True).order_by('-created_at').first()
+    countdown_text = None
+    expiry_str = None
+    status_color = "inactive"
+
+    if latest_license and latest_license.expiry_date:
+        today = timezone.now().date()
+        expiry = latest_license.expiry_date
+        expiry_str = expiry.strftime("%d %B, %Y")
+
+        if expiry < today:
+            countdown_text = "Expired"
+            status_color = "expired"
+        else:
+            delta = relativedelta(expiry, today)
+            months = delta.months + (delta.years * 12)
+            weeks = delta.days // 7
+            if months > 0 and weeks > 0:
+                countdown_text = f"{months}mo, {weeks}w left"
+            elif months > 0:
+                countdown_text = f"{months} months left"
+            elif weeks > 0:
+                countdown_text = f"{weeks} weeks left"
+            else:
+                countdown_text = f"{delta.days} days left"
+            status_color = "active"
+
+    return render(request, 'core/license.html', {
+        'latest_license': latest_license,
+        'countdown_text': countdown_text,
+        'expiry_str': expiry_str,
+        'status_color': status_color
+    })
+
+@login_required
+def license_logs(request):
+    """CEO page - all active licenses with countdown per bank"""
+    today = timezone.now().date()
+    licenses = License.objects.filter(is_active=True).order_by('-created_at')
+
+    data = []
+    for lic in licenses:
+        if not lic.expiry_date:
+            countdown = "No expiry"
+            color = "inactive"
+        elif lic.expiry_date < today:
+            countdown = "Expired"
+            color = "expired"
+        else:
+            delta = relativedelta(lic.expiry_date, today)
+            months = delta.months + (delta.years * 12)
+            weeks = delta.days // 7
+            if months > 0:
+                countdown = f"{months}mo, {weeks}w left" if weeks>0 else f"{months} months left"
+            elif weeks > 0:
+                countdown = f"{weeks} weeks left"
+            else:
+                countdown = f"{delta.days} days left"
+            color = "active"
+
+        data.append({
+            "obj": lic,
+            "countdown": countdown,
+            "color": color,
+            "expiry_str": lic.expiry_date.strftime("%d %b, %Y") if lic.expiry_date else "-"
+        })
+
+    return render(request, 'core/license_logs.html', {
+        "licenses": data,
+        "total_active": len([x for x in data if x['color']=='active']),
+        "total_expired": len([x for x in data if x['color']=='expired']),
+    })
+
+# ===== LICENSE GENERATOR =====
+from .license_utils import generate_crp_license
+from django.contrib.admin.views.decorators import staff_member_required
+
+@staff_member_required
+def generate_license(request):
+    context = {}
+    if request.method == "POST":
+        org = request.POST.get("org_name")
+        years = int(request.POST.get("years", 1))
+        
+        license_data = generate_crp_license(years=years, org_name=org)
+        
+        from .models import License
+        License.objects.create(
+            license_key=license_data["license_key"],
+            expiry_date=license_data["expiry_date"],
+            is_active=True
+        )
+        context["generated"] = license_data
+
+    return render(request, 'core/generate_license.html', context)

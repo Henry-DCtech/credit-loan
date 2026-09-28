@@ -1,0 +1,28 @@
+{% extends "core/base.html" %}
+{% block content %}
+<div style="max-width:500px;margin:40px auto;background:#fff;padding:24px;border-radius:16px;border:1px solid #e2e8f0">
+  <h5 class="fw-bold">Generate License for Client</h5>
+  <form method="POST" class="mt-3">
+    {% csrf_token %}
+    <input name="org_name" placeholder="Bank Name" class="form-control mb-2" required>
+    <input name="org_email" placeholder="Client Email" class="form-control mb-2">
+    <select name="years" class="form-select mb-3">
+      <option value="1">1 Year</option>
+      <option value="2">2 Years</option>
+      <option value="3">3 Years</option>
+      <option value="3">4 Years</option>
+      <option value="3">5 Years</option>
+    </select>
+    <button class="btn w-100" style="background:#0f172e;color:white">Generate CRP Code</button>
+  </form>
+
+  {% if generated %}
+  <div class="mt-4 p-3 rounded" style="background:#f8fafc;border:1px dashed #cbd5e1">
+    <div style="font-size:11px;font-weight:700;color:#64748b">LICENSE KEY</div>
+    <div style="font-size:18px;font-weight:800;letter-spacing:0.05em" class="mt-1">{{ generated.license_key }}</div>
+    <div style="font-size:12px;color:#64748b" class="mt-2">Org: {{ generated.org_name }} | Expires: {{ generated.expiry_date|date:"M d, Y" }}</div>
+    <button onclick="navigator.clipboard.writeText('{{ generated.license_key }}')" class="btn btn-sm mt-2 w-100 btn-outline-dark">Copy Key</button>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

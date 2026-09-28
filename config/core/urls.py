@@ -41,5 +41,8 @@ urlpatterns = [
 
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('terms-conditions/', views.terms_conditions, name='terms_conditions'),
-   
+    path('license/', views.license_page, name='license_page'),
+    path('license/', views.license_page, name='license'),  # add this alias to prevent future crash
+    path('licenses/logs/', views.license_logs, name='license_logs'),
+    path('licenses/generate/', views.generate_license, name='generate_license'),
 ]

@@ -1,0 +1,134 @@
+{% extends "core/base.html" %}
+{% block content %}
+<style>
+  .form-group-premium{margin-bottom:20px}
+  .form-label-std{
+    font-size:11px;font-weight:700;letter-spacing:0.08em;
+    text-transform:uppercase;color:#64748b;margin-bottom:8px;display:block;
+  }
+  .input-wrap{
+    position:relative;display:flex;align-items:center;
+    background:#fff;border:1px solid #e2e8f0;border-radius:14px;
+    transition:all .2s ease;
+  }
+  .input-wrap:focus-within{
+    border-color:#0f172e;box-shadow:0 0 0 4px rgba(15,23,46,0.06);
+  }
+  .input-icon{
+    width:48px;height:48px;display:flex;align-items:center;justify-content:center;
+    color:#94a3b8;flex-shrink:0;
+  }
+  .input-premium{
+    flex:1;height:48px;border:0;background:transparent;
+    font-size:14px;font-weight:500;color:#0f172a;
+    padding-right:16px;outline:none;
+  }
+  .input-premium::placeholder{color:#94a3b8;font-weight:400}
+  @keyframes shine{0%{left:-100%}20%{left:100%}100%{left:100%}}
+  .license-wrap{max-width:640px;margin:0 auto}
+  .license-card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+  .license-badge{font-size:10px;font-weight:800;letter-spacing:0.08em;background:#0f172e;color:#E8C468;padding:6px 10px;border-radius:999px;display:inline-flex;gap:6px;align-items:center}
+  .license-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+  .license-icon{width:40px;height:40px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#0f172a}
+</style>
+
+<div class="license-wrap">
+  <div class="license-card">
+
+    {% if latest_license %}
+    <div style="background:linear-gradient(135deg, #0f172e 0%, #1e2a4a 100%);border-radius:16px;padding:18px 20px;margin-bottom:24px;border:1px solid rgba(232,196,104,0.2);position:relative;overflow:hidden">
+      <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:radial-gradient(circle, rgba(232,196,104,0.15) 0%, transparent 70%)"></div>
+      <div class="d-flex align-items-center justify-content-between" style="position:relative;z-index:1">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="width:8px;height:8px;border-radius:50%;background:{% if status_color == 'active' %}#10b981{% else %}#ef4444{% endif %};box-shadow:0 0 0 4px rgba(16,185,129,0.15);display:inline-block"></span>
+            <span style="font-size:10px;font-weight:800;letter-spacing:0.1em;color:{% if status_color == 'active' %}#10b981{% else %}#ef4444{% endif %};text-transform:uppercase">{{ latest_license.status }}</span>
+            <span style="font-size:11px;color:rgba(255,255,255,0.5)">• {{ latest_license.org_name }}</span>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:white;letter-spacing:-0.02em">{{ countdown_text }}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px"><i class="bi bi-calendar-event me-1"></i> Expires on {{ expiry_str }}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:4px">License Key</div>
+          <div style="font-size:12px;font-weight:600;color:#E8C468;font-family:monospace">{{ latest_license.license_key|slice:":16" }}...</div>
+          <a href="{% url 'license_logs' %}" style="font-size:11px;color:#E8C468;text-decoration:none;margin-top:6px;display:inline-block">View all logs →</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    
+    <div class="license-header">
+      <div>
+        <div class="license-badge"><i class="bi bi-lock-fill"></i> License</div>
+        <h1 class="h5 fw-bold mt-3 mb-1" style="letter-spacing:-0.02em">License Management</h1>
+        <p class="mb-0" style="font-size:13px;color:#64748b">Activate your platform license</p>
+      </div>
+      <div class="license-icon">
+        <i class="bi bi-lock-fill" style="font-size:18px"></i>
+      </div>
+    </div>
+
+    <form method="POST" novalidate>
+      {% csrf_token %}
+      
+      <div class="form-group-premium">
+        <label class="form-label-std">License Key</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-key-fill"></i></span>
+          <input type="text" name="license_key" class="input-premium" placeholder="CRP-XXXX-XXXX-XXXX" required>
+          <span class="me-3" style="font-size:10px;font-weight:700;color:#10b981;background:#ecfdf5;padding:4px 8px;border-radius:999px">SECURE</span>
+        </div>
+      </div>
+
+      <div class="form-group-premium">
+        <label class="form-label-std">Organization Email</label>
+        <div class="input-wrap">
+          <span class="input-icon"><i class="bi bi-envelope"></i></span>
+          <input type="email" name="org_email" class="input-premium" placeholder="finance@bank.com">
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-8">
+          <div class="form-group-premium mb-0">
+            <label class="form-label-std">Organization Name</label>
+            <div class="input-wrap">
+              <span class="input-icon"><i class="bi bi-building"></i></span>
+              <input type="text" name="org_name" class="input-premium" placeholder="Company / Department" required>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group-premium mb-0">
+            <label class="form-label-std">Seats</label>
+            <div class="input-wrap" style="background:#f8fafc">
+              <span class="input-icon"><i class="bi bi-people"></i></span>
+              <input type="text" class="input-premium text-muted" value="Unlimited" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn w-100 mt-4 position-relative overflow-hidden d-flex align-items-center justify-content-center" 
+        style="min-height:58px;border-radius:16px;background:radial-gradient(120% 120% at 20% 0%, #2a3a5f 0%, #0f172e 60%);color:white;font-weight:800;font-size:14px;letter-spacing:0.04em;border:1px solid rgba(232,196,104,0.3);box-shadow:0 0 0 1px rgba(15,23,46,0.05), 0 8px 20px rgba(15,23,46,0.25), 0 20px 40px rgba(15,23,46,0.15), inset 0 1px 0 rgba(255,255,255,0.12);gap:14px;transition:all .25s ease;"
+        onmouseover="this.style.transform='translateY(-1px)'" 
+        onmouseout="this.style.transform='translateY(0)'">
+        <span style="position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);transform:skewX(-20deg);animation:shine 3s infinite;"></span>
+        <span style="width:36px;height:36px;border-radius:11px;background:linear-gradient(180deg, rgba(232,196,104,0.18) 0%, rgba(232,196,104,0.08) 100%);border:1px solid rgba(232,196,104,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-shield-lock-fill" style="color:#E8C468;font-size:15px"></i>
+        </span>
+        <span style="text-shadow:0 1px 2px rgba(0,0,0,0.2)">Activate License</span>
+        <span style="width:22px;height:22px;border-radius:999px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;margin-left:2px;">
+            <i class="bi bi-arrow-up-right" style="font-size:11px;opacity:0.8"></i>
+        </span>
+      </button>
+    </form>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{% url 'license_logs' %}" style="font-size:12px;font-weight:600;color:#0f172a;text-decoration:none;background:#fff;border:1px solid #e2e8f0;padding:10px 16px;border-radius:999px">
+      <i class="bi bi-journal-text me-1"></i> View License Logs (All Banks)
+    </a>
+  </div>
+</div>
+{% endblock %}

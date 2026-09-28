@@ -3,7 +3,7 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-your-dev-key-zioncare-local-only-change-later'
+SECRET_KEY = '3tpm9p7x$sf^n5#5v-n3e(ikg+jem)v*lp^&ic^3yoz!=bgf2b$'
 
 DEBUG = True
 
@@ -30,9 +30,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'core.middleware.LicenseCheckMiddleware',
 ]
 
-ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -50,6 +50,7 @@ TEMPLATES = [
     },
 ]
 
+ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
@@ -72,7 +73,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
@@ -95,3 +96,12 @@ SECURE_BROWSER_XSS_FILTER = False
 SECURE_CONTENT_TYPE_NOSNIFF = False
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 SECURE_PROXY_SSL_HEADER = None
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'zioncaredev@gmail.com'
+EMAIL_HOST_PASSWORD = 'techtech@1234'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

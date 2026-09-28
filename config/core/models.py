@@ -175,3 +175,80 @@ class Loan(models.Model):
 
     def __str__(self):
         return f"{self.client} - {self.balance}"
+    
+
+from django.db import models
+import uuid
+from datetime import date, timedelta
+
+class BankLicense(models.Model):
+    bank_name = models.CharField(max_length=200)
+    license_key = models.CharField(max_length=100, unique=True, default=uuid.uuid4)
+    is_active = models.BooleanField(default=True)
+    valid_until = models.DateField(default=date.today() + timedelta(days=30))
+    max_users = models.IntegerField(default=10)
+    license_type = models.CharField(max_length=20, choices=[('TRIAL','Trial'),('ANNUAL','Annual'),('OUTRIGHT','Outright')], default='ANNUAL')
+
+    def __str__(self):
+        return f"{self.bank_name} - {self.license_key} - Valid till {self.valid_until}"
+
+    def is_valid(self):
+        return self.is_active and self.valid_until >= date.today()
+
+    @staticmethod
+    def generate_key():
+        return str(uuid.uuid4()).upper()[:16] + "-" + str(uuid.uuid4()).upper()[:8]
+
+
+from django.db import models
+# models.py
+from django.utils import timezone
+
+class License(models.Model):
+    license_key = models.CharField(max_length=100, unique=True)
+    org_name = models.CharField(max_length=255, blank=True)
+    is_active = models.BooleanField(default=False)
+    expiry_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def status(self):
+        if not self.is_active or not self.expiry_date:
+            return "Inactive"
+        if self.expiry_date < timezone.now().date():
+            return "Expired"
+        return "Active"
+
+from .license_utils import generate_crp_license
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils import timezone
+from datetime import timedelta
+
+@staff_member_required
+def generate_license(request):
+    context = {}
+    if request.method == "POST":
+        org = request.POST.get("org_name")
+        years = int(request.POST.get("years", 1))
+        
+        license_data = generate_crp_license(years=years, org_name=org)
+        
+        from .models import License
+        
+        # --- FIXED: Only use fields that exist in your model ---
+        License.objects.create(
+            license_key=license_data["license_key"],
+            expiry_date=license_data["expiry_date"],
+            is_active=True
+        )
+        # If your model has org_name field, uncomment below:
+        # try:
+        #   lic = License.objects.get(license_key=license_data["license_key"])
+        #   if hasattr(lic, 'org_name'):
+        #       lic.org_name = org
+        #       lic.save()
+        # except: pass
+
+        context["generated"] = license_data
+
+    return render(request, 'core/generate_license.html', context)
