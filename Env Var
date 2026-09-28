@@ -1,0 +1,6 @@
+SECRET_KEY= your-long-secret-key
+DEBUG=False
+ALLOWED_HOSTS= yourdomain.com,.onrender.com
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+...
