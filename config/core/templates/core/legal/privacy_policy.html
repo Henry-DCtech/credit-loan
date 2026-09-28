@@ -1,0 +1,45 @@
+{% extends "core/base.html" %}
+{% block content %}
+<div style="max-width:950px;margin:0 auto;background:#fff;padding:36px;border-radius:24px;border:1px solid #eef2f7;box-shadow:0 10px 40px rgba(15,23,42,.05)">
+  <div style="border-left:6px solid #0f172a;padding-left:16px">
+    <h1 style="font-weight:900;font-size:28px;letter-spacing:-0.5px">Privacy Policy - ZionCare Development Loan</h1>
+    <p style="font-size:12px;font-weight:700;color:#94a3b8;margin-top:6px">LAST UPDATED: {% now "F j, Y" %} • EFFECTIVE IMMEDIATELY</p>
+  </div>
+
+  <div style="font-size:14px;line-height:1.9;color:#334155;margin-top:24px">
+    <p>At <b>ZionCare Development Loan</b>, your privacy and financial security are our highest priority. This Privacy Policy explains how we collect, use, protect, and manage your information when you use our loan management system.</p>
+
+    <h3 style="font-weight:900;margin-top:28px;color:#0f172a">1. Information We Collect</h3>
+    <ul style="padding-left:18px">
+      <li><b>Client Information:</b> Full name, phone number, address, branch, loan amount, repayment history.</li>
+      <li><b>Operational Data:</b> Daily collections, expected vs collected amounts, staff activity logs.</li>
+      <li><b>System Data:</b> Login timestamps, device IP, browser type for security monitoring.</li>
+    </ul>
+
+    <h3 style="font-weight:900;margin-top:28px;color:#0f172a">2. How We Use Your Information</h3>
+    <p>We use your data solely to: process and track loans, generate branch daily reports, ensure repayment accountability, improve service delivery, and comply with financial regulations. We <b>NEVER</b> sell your data to third parties.</p>
+
+    <h3 style="font-weight:900;margin-top:28px;color:#0f172a">3. Data Security - Bank Grade Protection</h3>
+    <ul style="padding-left:18px">
+      <li>256-bit SSL/TLS Encryption in transit</li>
+      <li>Encrypted storage, hashed passwords (PBKDF2 + Salt)</li>
+      <li>CSRF, XSS, SQL Injection, Clickjacking protection enabled</li>
+      <li>Brute-force lockout after 5 failed attempts</li>
+      <li>Role-based access: CEO, Manager, Field Officer</li>
+    </ul>
+
+    <h3 style="font-weight:900;margin-top:28px;color:#0f172a">4. Data Retention</h3>
+    <p>Repayment history is retained permanently for audit and regulatory compliance. Daily branch reports are archived, not deleted, to protect financial integrity.</p>
+
+    <h3 style="font-weight:900;margin-top:28px;color:#0f172a">5. Your Rights</h3>
+    <p>You have the right to request access, correction, or clarification of your data by contacting management through your branch.</p>
+
+    <h3 style="font-weight:900;margin-top:28px;color:#0f172a">6. Contact</h3>
+    <p>Email: <b>support@zioncaredevelopment.com</b><br>Company: <b>ZionCare Development Loan</b><br>Location: Lagos, Nigeria</p>
+
+    <div style="margin-top:32px;padding:16px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;font-size:12px;color:#64748b">
+      <b>CEO Statement:</b> "At ZionCare, trust is our currency. We built this system to protect every naira, every client, and every record from unauthorized access." — Management
+    </div>
+  </div>
+</div>
+{% endblock %}

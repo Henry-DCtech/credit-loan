@@ -740,3 +740,9 @@ def branch_daily_report(request):
         'overall': overall,
         'collections': base_qs.select_related('officer')[:300]
     })
+
+def privacy_policy(request):
+    return render(request, 'core/legal/privacy_policy.html')
+
+def terms_conditions(request):
+    return render(request, 'core/legal/terms.html')

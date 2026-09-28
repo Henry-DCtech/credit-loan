@@ -38,5 +38,8 @@ urlpatterns = [
     path('field/collection/print/', views.field_collection_print, name='field_collection_print_slash'),
 
     path('report/branch-daily/', views.branch_daily_report, name='branch_daily_report'),
+
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('terms-conditions/', views.terms_conditions, name='terms_conditions'),
    
 ]
